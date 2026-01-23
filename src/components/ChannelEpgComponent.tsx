@@ -207,11 +207,18 @@ export const ChannelEpgComponent: FC<ChannelEpgProps> = (props) => {
           }}
         >
           <Grid sm={2}>
+             <Box
+              sx={{
+                display: "flex",
+                alignItems: "stretch",
+                gap: 1,
+                p: 1,
+                height: "100%"}}>
             <ChannelCard
               stream={stream}
               onStreamClick={(stream) => onStreamClick(stream)}
               selected={selected}
-            />
+            /> </Box>
           </Grid>
           <Grid sm={10}>
             <Box
