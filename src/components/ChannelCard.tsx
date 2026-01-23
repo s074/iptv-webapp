@@ -27,7 +27,12 @@ export const ChannelCard: FC<ChannelCardProps> = (props) => {
       }}
     >
       <CardCover>
-        <img src={stream.stream_icon} loading="lazy" alt="" />
+        <img
+          src={stream.stream_icon}
+          loading="lazy"
+          alt=""
+          style={{ objectFit: "none" }}
+        />
       </CardCover>
       <CardCover
         sx={{

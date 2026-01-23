@@ -1,6 +1,6 @@
 import { Typography } from "@mui/joy"
 import { FC, useCallback, useState } from "react"
-import { useNavigate, useSearchParams } from "react-router-dom"
+import { useSearchParams } from "react-router-dom"
 import { MediaCarousel } from "../components/MediaCarousel"
 import { useAppSelector } from "../store/hooks"
 import {
@@ -14,29 +14,20 @@ import {
   VodStream,
 } from "../services/XtremeCodesAPI.types"
 import { MediaInfoModal } from "../components/MediaInfoModal"
-import { isLive } from "../services/utils"
-import { urls } from "../services/urls"
-import queryString from "query-string"
 
 export const SearchResults: FC = () => {
   const [searchParams] = useSearchParams()
-  const navigate = useNavigate()
   const seriesStreams = useAppSelector(selectSeriesStreams)
   const vodStreams = useAppSelector(selectVodStreams)
   const liveStreams = useAppSelector(selectLiveStreams)
   const [selectedTitle, setSelectedTitle] = useState<
-    (VodStream | SeriesStream) | undefined
+    (VodStream | SeriesStream | LiveStream) | undefined
   >(undefined)
 
   const query = searchParams.get("query")
 
   const onStreamClick = (stream: VodStream | SeriesStream | LiveStream) => {
-    if (isLive(stream)) {
-      navigate({
-        pathname: urls.liveTv,
-        search: queryString.stringify({ channel: stream.stream_id }),
-      })
-    } else setSelectedTitle(stream)
+    setSelectedTitle(stream)
   }
 
   const filteredSeries = useCallback(() => {

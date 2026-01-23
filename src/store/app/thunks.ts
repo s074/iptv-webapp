@@ -8,6 +8,7 @@ import {
   AccountInfo,
   VodInfo,
   SeriesInfo,
+  LiveStreamEPG,
 } from "../../services/XtremeCodesAPI.types"
 import { localStorageGet } from "../../services/utils"
 import { STORAGE_KEY } from "../../services/constants"
@@ -115,6 +116,19 @@ export const loadWatchlist = createAsyncThunk<
     : []
 
   return watchlist
+})
+
+export const loadFavorites = createAsyncThunk<
+  LiveStream[],
+  void,
+  { state: RootState }
+>("loadFavorites", async (_, thunkAPI): Promise<LiveStream[]> => {
+  const favoritesStr = await localStorageGet(STORAGE_KEY.FAVORITES)
+  const favorites = favoritesStr
+    ? (JSON.parse(favoritesStr) as LiveStream[])
+    : []
+
+  return favorites
 })
 
 export const fetchAccountInfo = createAsyncThunk<
@@ -284,5 +298,35 @@ export const fetchSeriesInfo = createAsyncThunk<
     }
 
     return await XtremeCodesAPI.getSeriesInfo(config, arg.seriesId)
+  },
+)
+
+export const fetchShortEpg = createAsyncThunk<
+  LiveStreamEPG,
+  { channelId: number; limit: number },
+  { state: RootState }
+>(
+  "fetchShortEpg",
+  async (
+    arg: { channelId: number; limit: number },
+    thunkAPI,
+  ): Promise<LiveStreamEPG> => {
+    const state = thunkAPI.getState()
+
+    const config = state.app.apiConfig
+
+    if (
+      ![config.auth.username, config.auth.password, config.baseUrl].every(
+        Boolean,
+      )
+    ) {
+      return Promise.reject("no api config")
+    }
+
+    return await XtremeCodesAPI.getEPGForLiveStream(
+      config,
+      arg.channelId,
+      arg.limit,
+    )
   },
 )

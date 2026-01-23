@@ -107,7 +107,13 @@ export const MediaCarousel: FC<MediaCarouselProps> = (props) => {
       >
         {pageItems.map((item) => {
           if (isLive(item))
-            return <ChannelCard stream={item} onStreamClick={onStreamClick} />
+            return (
+              <ChannelCard
+                stream={item}
+                onStreamClick={onStreamClick}
+                key={item.stream_id}
+              />
+            )
           else
             return (
               <MediaCard

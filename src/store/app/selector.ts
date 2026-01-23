@@ -48,6 +48,11 @@ export const selectWatchlist = createSelector(
   (app) => app.watchlist,
 )
 
+export const selectFavorites = createSelector(
+  selectAppState,
+  (app) => app.favorites,
+)
+
 export const selectPreferredBaseUrl = createSelector(
   selectAccountInfo,
   (accountInfo) =>

@@ -25,7 +25,7 @@ export const Watchlist: FC = () => {
       if (item.type === "vod") {
         const vod = vodStreams.find((element) => element.stream_id === item.id)
         if (vod) items.push(vod)
-      } else {
+      } else if (item.type === "series") {
         const series = seriesStreams.find(
           (element) => element.series_id === item.id,
         )

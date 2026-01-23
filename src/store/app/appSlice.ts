@@ -16,6 +16,7 @@ import {
   fetchVODStreamCategories,
   fetchVODStreams,
   loadApp,
+  loadFavorites,
   loadWatchlist,
 } from "./thunks"
 import {
@@ -37,6 +38,7 @@ export interface AppState {
   vodStreams: VodStream[]
   seriesStreams: SeriesStream[]
   watchlist: WatchlistItem[]
+  favorites: LiveStream[]
 }
 
 const initialState: AppState = {
@@ -51,6 +53,7 @@ const initialState: AppState = {
   vodStreams: [],
   seriesStreams: [],
   watchlist: [],
+  favorites: [],
 }
 
 export const appSlice = createSlice({
@@ -93,6 +96,23 @@ export const appSlice = createSlice({
         JSON.stringify(state.watchlist),
       ).catch(console.error)
     },
+    addToFavorites: (state, action: PayloadAction<LiveStream>) => {
+      state.favorites.push(action.payload)
+      localStorageSet(
+        STORAGE_KEY.FAVORITES,
+        JSON.stringify(state.favorites),
+      ).catch(console.error)
+    },
+    removeFromFavorites: (state, action: PayloadAction<LiveStream>) => {
+      const index = state.favorites.findIndex(
+        (element) => element.stream_id === action.payload.stream_id,
+      )
+      state.favorites.splice(index, 1)
+      localStorageSet(
+        STORAGE_KEY.FAVORITES,
+        JSON.stringify(state.favorites),
+      ).catch(console.error)
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -112,6 +132,9 @@ export const appSlice = createSlice({
       })
       .addCase(loadWatchlist.fulfilled, (state, action) => {
         state.watchlist = action.payload
+      })
+      .addCase(loadFavorites.fulfilled, (state, action) => {
+        state.favorites = action.payload
       })
       .addCase(fetchAccountInfo.fulfilled, (state, action) => {
         state.accountInfo = action.payload
@@ -174,6 +197,8 @@ export const {
   removeFromWatchlist,
   addToWatchlist,
   removeAccount,
+  addToFavorites,
+  removeFromFavorites,
 } = appSlice.actions
 
 export default appSlice.reducer

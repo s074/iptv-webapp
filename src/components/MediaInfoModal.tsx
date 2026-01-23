@@ -1,19 +1,22 @@
 import { FC, useState } from "react"
 import {
+  LiveStream,
   SeriesEpisode,
   SeriesStream,
   VodStream,
 } from "../services/XtremeCodesAPI.types"
 import { Box, Button, Modal, ModalClose, Typography } from "@mui/joy"
 import { VodInfoComponent } from "./VodInfoComponent"
-import { isVod } from "../services/utils"
+import { isLive, isSeries, isVod } from "../services/utils"
 import { SeriesInfoComponent } from "./SeriesInfoComponent"
 import { useNavigate } from "react-router-dom"
 import { urls } from "../services/urls"
+import queryString from "query-string"
+import { LiveInfoComponent } from "./LiveInfoComponent"
 
 export interface MediaInfoModalProps {
   onClose: () => void
-  stream: VodStream | SeriesStream
+  stream: VodStream | SeriesStream | LiveStream
 }
 
 export const MediaInfoModal: FC<MediaInfoModalProps> = (props) => {
@@ -28,10 +31,17 @@ export const MediaInfoModal: FC<MediaInfoModalProps> = (props) => {
       if (stream.stream_id === undefined) return
 
       navigate(urls.movieWatch.replace(":id", stream.stream_id.toString()))
-    } else {
+    } else if (isSeries(stream)) {
       if (stream.series_id === undefined) return
 
       navigate(urls.seriesWatch.replace(":id", stream.series_id.toString()))
+    } else {
+      if (stream.stream_id === undefined) return
+
+      navigate({
+        pathname: urls.liveTv,
+        search: queryString.stringify({ channel: stream.stream_id }),
+      })
     }
   }
 
@@ -56,7 +66,7 @@ export const MediaInfoModal: FC<MediaInfoModalProps> = (props) => {
         >
           {stream?.name}
         </Typography>
-        {isVod(stream) ? (
+        {isVod(stream) && (
           <VodInfoComponent
             vod={stream}
             playButton={
@@ -65,7 +75,8 @@ export const MediaInfoModal: FC<MediaInfoModalProps> = (props) => {
               </Button>
             }
           />
-        ) : (
+        )}
+        {isSeries(stream) && (
           <SeriesInfoComponent
             series={stream}
             playButton={
@@ -75,6 +86,16 @@ export const MediaInfoModal: FC<MediaInfoModalProps> = (props) => {
             }
             selectedEpisode={selectedEpisode}
             onSelectEpisode={(episode) => setSelectedEpisode(episode)}
+          />
+        )}
+        {isLive(stream) && (
+          <LiveInfoComponent
+            stream={stream}
+            playButton={
+              <Button variant="solid" color="success" onClick={onClickWatch}>
+                Play
+              </Button>
+            }
           />
         )}
       </Box>
