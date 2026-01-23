@@ -11,10 +11,11 @@ import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded"
 import { isBase64 } from "../services/utils"
 
 export interface ChannelEpgProps {
-  epg: LiveStreamEPG
+  epg: LiveStreamEPG | undefined
   offset: number
   onStreamClick: (stream: LiveStream) => void
   stream: LiveStream
+  selected?: boolean
 }
 
 // Helper to format time from timestamp or ISO string
@@ -169,11 +170,11 @@ const EpgItem: FC<{ item: LiveStreamEPGItem }> = ({ item }) => {
 }
 
 export const ChannelEpgComponent: FC<ChannelEpgProps> = (props) => {
-  const { epg, offset, stream, onStreamClick } = props
+  const { epg, offset, stream, onStreamClick, selected } = props
 
   // Sort EPG listings by start time and filter to reasonable window
   const sortedListings = useMemo(() => {
-    if (!epg.epg_listings?.length) return []
+    if (!epg?.epg_listings?.length) return []
     const now = Date.now() / 1000
     return [...epg.epg_listings]
       .filter((item) => {
@@ -183,7 +184,7 @@ export const ChannelEpgComponent: FC<ChannelEpgProps> = (props) => {
       })
       .sort((a, b) => (a.start_timestamp ?? 0) - (b.start_timestamp ?? 0))
       .slice(0, 10) // Limit to 10 items for performance
-  }, [epg.epg_listings])
+  }, [epg?.epg_listings])
 
   return (
     <ListItem>
@@ -209,6 +210,7 @@ export const ChannelEpgComponent: FC<ChannelEpgProps> = (props) => {
             <ChannelCard
               stream={stream}
               onStreamClick={(stream) => onStreamClick(stream)}
+              selected={selected}
             />
           </Grid>
           <Grid sm={10}>

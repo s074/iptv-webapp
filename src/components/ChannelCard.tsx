@@ -18,6 +18,9 @@ export const ChannelCard: FC<ChannelCardProps> = (props) => {
         margin: 1,
         flexGrow: 1,
         //height: "100%",
+        border: selected ? "1px solid" : "1px solid transparent",
+        borderColor: selected ? "primary.300" : "transparent",
+        outline: selected ? "#fff solid 2px" : "transparent",
         "&:hover": {
           boxShadow: "md",
           outline: "#fff solid 2px",

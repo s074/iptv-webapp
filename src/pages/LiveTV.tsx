@@ -16,9 +16,9 @@ import { containerToMimeType } from "../services/utils"
 import videojs from "video.js"
 import Player from "video.js/dist/types/player"
 import { VideoPlayer } from "../components/VideoPlayer"
-import { ChannelCard } from "../components/ChannelCard"
 import { useSearchParams } from "react-router-dom"
 import { useChannelUrl } from "../components/useMediaUrl"
+import { ShortEpgComponent } from "../components/ShortEpgComponent"
 
 export const LiveTV: FC = () => {
   const liveStreams = useAppSelector(selectLiveStreams)
@@ -172,15 +172,8 @@ export const LiveTV: FC = () => {
                     gap: 0,
                   }}
                 >
-                  <Grid sm={2}>
-                    <ChannelCard
-                      stream={liveStream}
-                      onStreamClick={(stream) => onStreamClick(stream)}
-                      selected={selectedStream === liveStream}
-                    />
-                  </Grid>
-                  <Grid sm={10}>
-                    <div>stuff here</div>
+                  <Grid sm={12}>
+                    <ShortEpgComponent stream={liveStream} onStreamClick={onStreamClick} selected={selectedStream === liveStream} />
                   </Grid>
                 </Grid>
               </ListItemContent>
