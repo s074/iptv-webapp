@@ -222,14 +222,7 @@ export const LiveTV: FC = () => {
                     <Grid
                       container
                       sx={{
-                        "--Grid-borderWidth": "1px",
-                        borderTop: "var(--Grid-borderWidth) solid",
-                        borderBottom: "var(--Grid-borderWidth) solid",
-                        borderColor: "divider",
-                        "& > div": {
-                          borderRight: "var(--Grid-borderWidth) solid",
-                          borderColor: "divider",
-                        },
+                        border: 0,
                         gap: 0,
                       }}
                     >
