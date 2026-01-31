@@ -4,11 +4,11 @@ import {
   LiveStreamEPG,
   LiveStreamEPGItem,
 } from "../services/XtremeCodesAPI.types"
-import { Box, Grid, ListItem, ListItemContent, Typography, Chip } from "@mui/joy"
+import { Box, Grid, Typography, Chip } from "@mui/joy"
 import { ChannelCard } from "./ChannelCard"
 import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded"
 import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded"
-import { isBase64 } from "../services/utils"
+import { b64DecodeUnicode } from "../services/utils"
 
 export interface ChannelEpgProps {
   epg: LiveStreamEPG | undefined
@@ -49,9 +49,8 @@ const decodeTitle = (title?: string): string => {
   if (!title) return "Unknown Program"
   try {
     // Check if it looks like base64
-    if (isBase64(title) && title.length > 20) {
-      return atob(title)
-    }
+    const decodedTitle = b64DecodeUnicode(title);
+    return decodedTitle;
   } catch {
     // Not base64, return as-is
   }
@@ -187,86 +186,82 @@ export const ChannelEpgComponent: FC<ChannelEpgProps> = (props) => {
   }, [epg?.epg_listings])
 
   return (
-    <ListItem>
-      <ListItemContent>
-        <Grid
-          container
+    <Grid
+      container
+      sx={{
+        "--Grid-borderWidth": "1px",
+        borderTop: "var(--Grid-borderWidth) solid",
+        borderBottom: "var(--Grid-borderWidth) solid",
+        borderColor: "divider",
+        "& > div": {
+          borderRight: "var(--Grid-borderWidth) solid",
+          borderColor: "divider",
+        },
+        gap: 0,
+        minHeight: 100,
+        background:
+          "linear-gradient(135deg, rgba(var(--joy-palette-neutral-mainChannel) / 0.02), rgba(var(--joy-palette-neutral-mainChannel) / 0.06))",
+      }}
+    >
+      <Grid sm={2}>
+         <Box
           sx={{
-            "--Grid-borderWidth": "1px",
-            borderTop: "var(--Grid-borderWidth) solid",
-            borderBottom: "var(--Grid-borderWidth) solid",
-            borderColor: "divider",
-            "& > div": {
-              borderRight: "var(--Grid-borderWidth) solid",
-              borderColor: "divider",
+            display: "flex",
+            alignItems: "stretch",
+            gap: 1,
+            p: 1,
+            height: "100%"}}>
+        <ChannelCard
+          stream={stream}
+          onStreamClick={(stream) => onStreamClick(stream)}
+          selected={selected}
+        /> </Box>
+      </Grid>
+      <Grid sm={10}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "stretch",
+            gap: 1,
+            p: 1,
+            overflowX: "auto",
+            height: "100%",
+            "&::-webkit-scrollbar": {
+              height: 6,
             },
-            gap: 0,
-            minHeight: 100,
-            background:
-              "linear-gradient(135deg, rgba(var(--joy-palette-neutral-mainChannel) / 0.02), rgba(var(--joy-palette-neutral-mainChannel) / 0.06))",
+            "&::-webkit-scrollbar-track": {
+              background: "transparent",
+            },
+            "&::-webkit-scrollbar-thumb": {
+              background: "rgba(var(--joy-palette-neutral-mainChannel) / 0.2)",
+              borderRadius: 3,
+            },
+            "&::-webkit-scrollbar-thumb:hover": {
+              background: "rgba(var(--joy-palette-neutral-mainChannel) / 0.3)",
+            },
           }}
         >
-          <Grid sm={2}>
-             <Box
-              sx={{
-                display: "flex",
-                alignItems: "stretch",
-                gap: 1,
-                p: 1,
-                height: "100%"}}>
-            <ChannelCard
-              stream={stream}
-              onStreamClick={(stream) => onStreamClick(stream)}
-              selected={selected}
-            /> </Box>
-          </Grid>
-          <Grid sm={10}>
+          {sortedListings.length > 0 ? (
+            sortedListings.map((item, index) => (
+              <EpgItem key={item.id ?? `epg-${index}`} item={item} />
+            ))
+          ) : (
             <Box
               sx={{
                 display: "flex",
-                alignItems: "stretch",
-                gap: 1,
-                p: 1,
-                overflowX: "auto",
-                height: "100%",
-                "&::-webkit-scrollbar": {
-                  height: 6,
-                },
-                "&::-webkit-scrollbar-track": {
-                  background: "transparent",
-                },
-                "&::-webkit-scrollbar-thumb": {
-                  background: "rgba(var(--joy-palette-neutral-mainChannel) / 0.2)",
-                  borderRadius: 3,
-                },
-                "&::-webkit-scrollbar-thumb:hover": {
-                  background: "rgba(var(--joy-palette-neutral-mainChannel) / 0.3)",
-                },
+                alignItems: "center",
+                justifyContent: "center",
+                width: "100%",
+                color: "neutral.400",
               }}
             >
-              {sortedListings.length > 0 ? (
-                sortedListings.map((item, index) => (
-                  <EpgItem key={item.id ?? `epg-${index}`} item={item} />
-                ))
-              ) : (
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    width: "100%",
-                    color: "neutral.400",
-                  }}
-                >
-                  <Typography level="body-sm" sx={{ fontStyle: "italic" }}>
-                    No program information available
-                  </Typography>
-                </Box>
-              )}
+              <Typography level="body-sm" sx={{ fontStyle: "italic" }}>
+                No program information available
+              </Typography>
             </Box>
-          </Grid>
-        </Grid>
-      </ListItemContent>
-    </ListItem>
+          )}
+        </Box>
+      </Grid>
+    </Grid>
   )
 }

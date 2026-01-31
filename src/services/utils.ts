@@ -91,9 +91,9 @@ function unsecuredCopyToClipboard(text: string) {
   document.body.removeChild(textArea)
 }
 
-export const isBase64 = (value: string): boolean => {
-  const base64regex =
-    /^(?:[A-Za-z0-9+\/]{4})*(?:[A-Za-z0-9+\/]{4}|[A-Za-z0-9+\/]{3}=|[A-Za-z0-9+\/]{2}={2})$/
-
-  return base64regex.test(value)
+export const b64DecodeUnicode = (str: string) => {
+  // Going backwards: from bytestream, to percent-encoding, to original string.
+  return decodeURIComponent(atob(str).split('').map(function(c) {
+    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+  }).join(''));
 }
