@@ -17,7 +17,7 @@ export const ChannelCard: FC<ChannelCardProps> = (props) => {
       sx={{
         margin: 1,
         flexGrow: 1,
-        minWidth: 200,
+        minWidth: 150,
         maxWidth: 280,
         height: "100%",
         border: selected ? "1px solid" : "1px solid transparent",

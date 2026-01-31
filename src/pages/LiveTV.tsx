@@ -9,9 +9,11 @@ import {
   ListItem,
   ListItemButton,
   ListItemContent,
+  IconButton,
+  Typography,
 } from "@mui/joy"
 import { Category, LiveStream } from "../services/XtremeCodesAPI.types"
-import { KeyboardArrowRight } from "@mui/icons-material"
+import { KeyboardArrowRight, KeyboardArrowDown, Menu } from "@mui/icons-material"
 import { containerToMimeType } from "../services/utils"
 import videojs from "video.js"
 import Player from "video.js/dist/types/player"
@@ -29,6 +31,7 @@ export const LiveTV: FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<
     Category | undefined
   >(undefined)
+  const [categoriesCollapsed, setCategoriesCollapsed] = useState(true)
   const [searchParams, setSearchParams] = useSearchParams()
   const playerRef = useRef<Player | null>(null)
   const url = useChannelUrl(selectedStream?.stream_id ?? 0, "m3u8")
@@ -127,59 +130,123 @@ export const LiveTV: FC = () => {
       <Container maxWidth="lg">
         <VideoPlayer options={videoJsOptions()} onReady={handlePlayerReady} />
       </Container>
-      <Container maxWidth="xl">
-        <List
-          variant="outlined"
-          orientation="horizontal"
-          sx={{
-            borderRadius: "sm",
-            overflow: "auto",
-          }}
-        >
-          {liveStreamCategories.map((category) => (
-            <ListItem key={category.category_id}>
-              <ListItemButton
-                onClick={() => setSelectedCategory(category)}
-                selected={selectedCategory === category}
-              >
-                <ListItemContent>{category.category_name}</ListItemContent>
-                <KeyboardArrowRight />
-              </ListItemButton>
-            </ListItem>
-          ))}
-        </List>
-        <List
-          variant="outlined"
-          orientation="vertical"
-          sx={{ borderRadius: "sm", overflow: "auto", maxHeight: "500px" }}
-        >
-          {categoryLiveStreams().map((liveStream) => (
-            <ListItem key={liveStream.stream_id}>
-              <ListItemContent>
-                <Grid
-                  container
+      <Container maxWidth="xl" sx={{ mt: 2 }}>
+        <Grid container spacing={2} sx={{
+          height: "600px", 
+        }}
+        xs={12}>
+          <Grid
+            xs={12}
+            md={2}
+            sx={{
+              height: { xs: "auto", md: "100%" },
+              maxHeight: { xs: categoriesCollapsed ? "48px" : "310px", md: "100%" },
+              overflow: "hidden",
+              borderRight: { md: "1px solid" },
+              borderBottom: { xs: "1px solid", md: "none" },
+              borderColor: "divider",
+              transition: "max-height 0.3s ease-in-out",
+            }}
+          >
+            {/* Mobile toggle header */}
+            <Box
+              sx={{
+                display: { xs: "flex", md: "none" },
+                alignItems: "center",
+                justifyContent: "space-between",
+                p: 1,
+                borderBottom: categoriesCollapsed ? "none" : "1px solid",
+                borderColor: "divider",
+                cursor: "pointer",
+              }}
+              onClick={() => setCategoriesCollapsed(!categoriesCollapsed)}
+            >
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <Menu />
+                <Typography level="title-sm">
+                  {selectedCategory?.category_name || "Categories"}
+                </Typography>
+              </Box>
+              <IconButton size="sm" variant="plain">
+                <KeyboardArrowDown
                   sx={{
-                    "--Grid-borderWidth": "1px",
-                    borderTop: "var(--Grid-borderWidth) solid",
-                    //borderLeft: "var(--Grid-borderWidth) solid",
-                    borderBottom: "var(--Grid-borderWidth) solid",
-                    borderColor: "divider",
-                    "& > div": {
-                      borderRight: "var(--Grid-borderWidth) solid",
-                      //borderBottom: "var(--Grid-borderWidth) solid",
-                      borderColor: "divider",
-                    },
-                    gap: 0,
+                    transform: categoriesCollapsed ? "rotate(0deg)" : "rotate(180deg)",
+                    transition: "transform 0.2s ease-in-out",
                   }}
-                >
-                  <Grid sm={12}>
-                    <ShortEpgComponent stream={liveStream} onStreamClick={onStreamClick} selected={selectedStream === liveStream} />
-                  </Grid>
-                </Grid>
-              </ListItemContent>
-            </ListItem>
-          ))}
-        </List>
+                />
+              </IconButton>
+            </Box>
+            {/* Categories list */}
+            <Box
+              sx={{
+                display: { xs: categoriesCollapsed ? "none" : "block", md: "block" },
+                height: { md: "100%" },
+                maxHeight: { xs: "250px", md: "100%" },
+                overflow: "auto",
+              }}
+            >
+              <List
+                variant="outlined"
+                orientation="vertical"
+                sx={{
+                  borderRadius: "sm",
+                  "--ListItem-paddingY": "1rem",
+                }}
+              >
+                {liveStreamCategories.map((category) => (
+                  <ListItem key={category.category_id}>
+                    <ListItemButton
+                      onClick={() => {
+                        setSelectedCategory(category)
+                        setCategoriesCollapsed(true) // Collapse on selection for mobile
+                      }}
+                      selected={selectedCategory === category}
+                    >
+                      <ListItemContent>{category.category_name}</ListItemContent>
+                      <KeyboardArrowRight />
+                    </ListItemButton>
+                  </ListItem>
+                ))}
+              </List>
+            </Box>
+          </Grid>
+          <Grid xs={12} md={10} sx={{ height: "100%", overflow: "auto" }}>
+            <List
+              variant="outlined"
+              orientation="vertical"
+              sx={{ borderRadius: "sm" }}
+            >
+              {categoryLiveStreams().map((liveStream) => (
+                <ListItem key={liveStream.stream_id}>
+                  <ListItemContent>
+                    <Grid
+                      container
+                      sx={{
+                        "--Grid-borderWidth": "1px",
+                        borderTop: "var(--Grid-borderWidth) solid",
+                        borderBottom: "var(--Grid-borderWidth) solid",
+                        borderColor: "divider",
+                        "& > div": {
+                          borderRight: "var(--Grid-borderWidth) solid",
+                          borderColor: "divider",
+                        },
+                        gap: 0,
+                      }}
+                    >
+                      <Grid sm={12}>
+                        <ShortEpgComponent
+                          stream={liveStream}
+                          onStreamClick={onStreamClick}
+                          selected={selectedStream === liveStream}
+                        />
+                      </Grid>
+                    </Grid>
+                  </ListItemContent>
+                </ListItem>
+              ))}
+            </List>
+          </Grid>
+        </Grid>
       </Container>
     </Box>
   )
