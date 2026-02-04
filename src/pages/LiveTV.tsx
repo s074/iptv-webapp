@@ -218,7 +218,11 @@ export const LiveTV: FC = () => {
             >
               {categoryLiveStreams().map((liveStream) => (
                 <ListItem key={liveStream.stream_id}>
-                  <ListItemContent>
+                  <ListItemContent sx={{
+                    backgroundColor: selectedStream === liveStream
+          ? "var(--variant-plainActiveBg, var(--joy-palette-neutral-plainActiveBg, var(--joy-palette-neutral-200, #DDE7EE)))"
+          : "rgba(var(--joy-palette-neutral-mainChannel) / 0.05)",
+                  }}>
                     <Grid
                       container
                       sx={{
@@ -230,7 +234,6 @@ export const LiveTV: FC = () => {
                         <ShortEpgComponent
                           stream={liveStream}
                           onStreamClick={onStreamClick}
-                          selected={selectedStream === liveStream}
                         />
                       </Grid>
                     </Grid>
