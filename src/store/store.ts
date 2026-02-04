@@ -1,10 +1,14 @@
 import { configureStore, ThunkAction, Action, combineSlices } from "@reduxjs/toolkit"
 import { appSlice } from "./app/appSlice"
 import { setupListeners } from "@reduxjs/toolkit/query"
+import { watchlistSlice } from "./watchlist/watchlistSlice"
+import { seriesSlice } from "./series/seriesSlice"
+import { vodSlice } from "./vod/vodSlice"
+import { liveSlice } from "./live/liveSlice"
 
 // `combineSlices` automatically combines the reducers using
 // their `reducerPath`s, therefore we no longer need to call `combineReducers`.
-const rootReducer = combineSlices(appSlice)
+const rootReducer = combineSlices(appSlice, watchlistSlice, seriesSlice, vodSlice, liveSlice)
 // Infer the `RootState` type from the root reducer
 export type RootState = ReturnType<typeof rootReducer>
 

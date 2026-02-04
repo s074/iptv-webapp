@@ -11,14 +11,11 @@ import { useState } from "react"
 import { useAppDispatch } from "../../store/hooks"
 import { setApiConfig, setAppStatus } from "../../store/app/appSlice"
 import {
-  fetchAccountInfo,
-  fetchLiveStreamCategories,
-  fetchLiveStreams,
-  fetchSeriesStreamCategories,
-  fetchSeriesStreams,
-  fetchVODStreamCategories,
-  fetchVODStreams,
+  fetchAccountInfo
 } from "../../store/app/thunks"
+import { fetchSeriesCategoriesAsync, fetchSeriesStreamsAsync } from "../../store/series/seriesSlice"
+import { fetchVodCategoriesAsync, fetchVodStreamsAsync } from "../../store/vod/vodSlice"
+import { fetchLiveCategoriesAsync, fetchLiveStreamsAsync } from "../../store/live/liveSlice"
 
 export const Login: React.FC = () => {
   const [username, setUsername] = useState("")
@@ -77,15 +74,15 @@ export const Login: React.FC = () => {
 
     setStatus("loading")
     dispatch(setApiConfig(config))
-    // load common app shit here
+    // load common app stuff
     try {
       await Promise.all([
-        dispatch(fetchLiveStreamCategories()).unwrap(),
-        dispatch(fetchVODStreamCategories()).unwrap(),
-        dispatch(fetchSeriesStreamCategories()).unwrap(),
-        dispatch(fetchLiveStreams()).unwrap(),
-        dispatch(fetchVODStreams()).unwrap(),
-        dispatch(fetchSeriesStreams()).unwrap(),
+        dispatch(fetchLiveCategoriesAsync()).unwrap(),
+        dispatch(fetchVodCategoriesAsync()).unwrap(),
+        dispatch(fetchSeriesCategoriesAsync()).unwrap(),
+        dispatch(fetchLiveStreamsAsync()).unwrap(),
+        dispatch(fetchVodStreamsAsync()).unwrap(),
+        dispatch(fetchSeriesStreamsAsync()).unwrap(),
       ])
     } catch (e) {
       console.log(e)

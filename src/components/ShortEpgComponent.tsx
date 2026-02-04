@@ -1,6 +1,6 @@
 import { FC, useEffect, useState } from "react";
 import { useAppDispatch } from "../store/hooks";
-import { fetchShortEpg } from "../store/app/thunks";
+import { fetchShortEpgAsync } from "../store/live/liveSlice";
 import { LiveStream, LiveStreamEPG } from "../services/XtremeCodesAPI.types";
 import { ChannelEpgComponent } from "./ChannelEpgComponent";
 
@@ -18,7 +18,7 @@ export const ShortEpgComponent: FC<ShortEpgProps> = (props) => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-              const info = await dispatch(fetchShortEpg({ channelId: stream.stream_id!, limit: limit ?? 5 })).unwrap()
+              const info = await dispatch(fetchShortEpgAsync({ channelId: stream.stream_id!, limit: limit ?? 5 })).unwrap()
               setEpg(info)
             } catch (error) {
               console.log(error)

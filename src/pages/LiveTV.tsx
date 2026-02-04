@@ -1,6 +1,6 @@
 import { FC, useCallback, useEffect, useRef, useState } from "react"
 import { useAppSelector } from "../store/hooks"
-import { selectLiveCategories, selectLiveStreams } from "../store/app/selector"
+import { selectLiveCategories, selectLiveStreams } from "../store/live/liveSlice"
 import {
   Box,
   Container,

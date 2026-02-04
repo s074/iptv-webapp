@@ -7,7 +7,6 @@ import {
 } from "../services/XtremeCodesAPI.types"
 import { useAppDispatch, useAppSelector } from "../store/hooks"
 import { Loading } from "./layout/Loading"
-import { fetchSeriesInfo } from "../store/app/thunks"
 import {
   AspectRatio,
   Button,
@@ -21,10 +20,10 @@ import {
 } from "@mui/joy"
 import { ArrowDropDown } from "@mui/icons-material"
 import { EpisodesCarousel } from "./EpisodesCarousel"
-import { selectWatchlist } from "../store/app/selector"
-import { addToWatchlist, removeFromWatchlist } from "../store/app/appSlice"
+import { selectWatchlist, addToWatchlist, removeFromWatchlist } from "../store/watchlist/watchlistSlice"
 import { useEpisodeUrl } from "./useMediaUrl"
 import { copyTextToClibpboard } from "../services/utils"
+import { fetchSeriesInfoAsync } from "../store/series/seriesSlice"
 
 export interface SeriesInfoProps {
   series: SeriesStream
@@ -50,7 +49,7 @@ export const SeriesInfoComponent: FC<SeriesInfoProps> = (props) => {
   useEffect(() => {
     if (!series || !series.series_id) return
 
-    dispatch(fetchSeriesInfo({ seriesId: series.series_id }))
+    dispatch(fetchSeriesInfoAsync({ seriesId: series.series_id }))
       .unwrap()
       .then((info) => {
         setInfo(info)

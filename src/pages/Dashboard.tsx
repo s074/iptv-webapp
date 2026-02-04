@@ -14,26 +14,24 @@ import {
 } from "@mui/joy"
 import { getDateForTimestamp } from "../services/utils"
 import {
-  fetchAccountInfo,
-  fetchLiveStreamCategories,
-  fetchLiveStreams,
-  fetchSeriesStreamCategories,
-  fetchSeriesStreams,
-  fetchVODStreamCategories,
-  fetchVODStreams,
+  fetchAccountInfo
 } from "../store/app/thunks"
 import { removeAccount } from "../store/app/appSlice"
+import { fetchSeriesCategoriesAsync, fetchSeriesStreamsAsync, selectSeriesStreams } from "../store/series/seriesSlice"
+import { selectWatchlist } from "../store/watchlist/watchlistSlice"
+import { fetchVodCategoriesAsync, fetchVodStreamsAsync, selectVodStreams } from "../store/vod/vodSlice"
+import { fetchLiveCategoriesAsync, fetchLiveStreamsAsync, selectLiveStreams } from "../store/live/liveSlice"
 
 export const Dashboard: FC = () => {
   const [state, setState] = useState<"loading" | "ready">("ready")
   const {
     accountInfo,
-    liveStreams,
-    vodStreams,
-    seriesStreams,
-    watchlist,
     lastFetchedAccountInfo,
   } = useAppSelector(selectAppState)
+  const seriesStreams = useAppSelector(selectSeriesStreams)
+  const watchlist = useAppSelector(selectWatchlist)
+  const vodStreams = useAppSelector(selectVodStreams)
+  const liveStreams = useAppSelector(selectLiveStreams)
   const dispatch = useAppDispatch()
 
   console.log(accountInfo)
@@ -46,12 +44,12 @@ export const Dashboard: FC = () => {
     setState("loading")
     try {
       await Promise.all([
-        dispatch(fetchLiveStreamCategories()).unwrap(),
-        dispatch(fetchVODStreamCategories()).unwrap(),
-        dispatch(fetchSeriesStreamCategories()).unwrap(),
-        dispatch(fetchLiveStreams()).unwrap(),
-        dispatch(fetchVODStreams()).unwrap(),
-        dispatch(fetchSeriesStreams()).unwrap(),
+        dispatch(fetchLiveCategoriesAsync()).unwrap(),
+        dispatch(fetchVodCategoriesAsync()).unwrap(),
+        dispatch(fetchSeriesCategoriesAsync()).unwrap(),
+        dispatch(fetchLiveStreamsAsync()).unwrap(),
+        dispatch(fetchVodStreamsAsync()).unwrap(),
+        dispatch(fetchSeriesStreamsAsync()).unwrap(),
       ])
     } catch (e) {
       console.log(e)

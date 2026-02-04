@@ -1,5 +1,5 @@
 import { FC, useState } from "react"
-import { selectVodCategories, selectVodStreams } from "../store/app/selector"
+import { selectVodCategories, selectVodStreams } from "../store/vod/vodSlice"
 import { useAppSelector } from "../store/hooks"
 import { VodStream } from "../services/XtremeCodesAPI.types"
 import { MediaInfoModal } from "../components/MediaInfoModal"

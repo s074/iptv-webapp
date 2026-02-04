@@ -3,12 +3,12 @@ import { FC, useCallback, useState } from "react"
 import { useAppSelector } from "../store/hooks"
 import {
   selectSeriesStreams,
-  selectVodStreams,
-  selectWatchlist,
-} from "../store/app/selector"
+} from "../store/series/seriesSlice"
 import { SeriesStream, VodStream } from "../services/XtremeCodesAPI.types"
 import { MediaInfoModal } from "../components/MediaInfoModal"
 import { MediaCard } from "../components/MediaCard"
+import { selectWatchlist } from "../store/watchlist/watchlistSlice"
+import { selectVodStreams } from "../store/vod/vodSlice"
 
 export const Watchlist: FC = () => {
   const watchlist = useAppSelector(selectWatchlist)
@@ -25,7 +25,7 @@ export const Watchlist: FC = () => {
       if (item.type === "vod") {
         const vod = vodStreams.find((element) => element.stream_id === item.id)
         if (vod) items.push(vod)
-      } else if (item.type === "series") {
+      } else {
         const series = seriesStreams.find(
           (element) => element.series_id === item.id,
         )

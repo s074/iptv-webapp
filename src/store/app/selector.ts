@@ -3,6 +3,12 @@ import { RootState } from "../store"
 
 export const selectAppState = (state: RootState) => state.app
 
+export const selectSeries = (state: RootState) => state.series
+
+export const selectVod = (state: RootState) => state.vod
+
+export const selectLive = (state: RootState) => state.live
+
 export const selectAppStatus = createSelector(
   selectAppState,
   (app) => app.status,
@@ -11,46 +17,6 @@ export const selectAppStatus = createSelector(
 export const selectAccountInfo = createSelector(
   selectAppState,
   (app) => app.accountInfo,
-)
-
-export const selectLiveStreams = createSelector(
-  selectAppState,
-  (app) => app.liveStreams,
-)
-
-export const selectVodStreams = createSelector(
-  selectAppState,
-  (app) => app.vodStreams,
-)
-
-export const selectSeriesStreams = createSelector(
-  selectAppState,
-  (app) => app.seriesStreams,
-)
-
-export const selectLiveCategories = createSelector(
-  selectAppState,
-  (app) => app.liveCategories,
-)
-
-export const selectVodCategories = createSelector(
-  selectAppState,
-  (app) => app.vodCategories,
-)
-
-export const selectSeriesCategories = createSelector(
-  selectAppState,
-  (app) => app.seriesCategories,
-)
-
-export const selectWatchlist = createSelector(
-  selectAppState,
-  (app) => app.watchlist,
-)
-
-export const selectFavorites = createSelector(
-  selectAppState,
-  (app) => app.favorites,
 )
 
 export const selectPreferredBaseUrl = createSelector(

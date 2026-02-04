@@ -6,7 +6,7 @@ import {
 } from "../../services/XtremeCodesAPI.types"
 import Player from "video.js/dist/types/player"
 import { useAppSelector } from "../../store/hooks"
-import { selectSeriesStreams } from "../../store/app/selector"
+import { selectSeriesStreams } from "../../store/series/seriesSlice"
 import { VideoPlayer } from "../../components/VideoPlayer"
 import videojs from "video.js"
 import { Box, Container, Typography } from "@mui/joy"

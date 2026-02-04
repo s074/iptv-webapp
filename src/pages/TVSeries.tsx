@@ -4,7 +4,7 @@ import { useAppSelector } from "../store/hooks"
 import {
   selectSeriesCategories,
   selectSeriesStreams,
-} from "../store/app/selector"
+} from "../store/series/seriesSlice"
 import { MediaInfoModal } from "../components/MediaInfoModal"
 import { MediaVirtualizedList } from "../components/MediaVirtualizedList"
 

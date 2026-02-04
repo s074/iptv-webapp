@@ -5,15 +5,15 @@ import { MediaCarousel } from "../components/MediaCarousel"
 import { useAppSelector } from "../store/hooks"
 import {
   selectLiveStreams,
-  selectSeriesStreams,
-  selectVodStreams,
-} from "../store/app/selector"
+} from "../store/live/liveSlice"
 import {
   LiveStream,
   SeriesStream,
   VodStream,
 } from "../services/XtremeCodesAPI.types"
 import { MediaInfoModal } from "../components/MediaInfoModal"
+import { selectSeriesStreams } from "../store/series/seriesSlice"
+import { selectVodStreams } from "../store/vod/vodSlice"
 
 export const SearchResults: FC = () => {
   const [searchParams] = useSearchParams()

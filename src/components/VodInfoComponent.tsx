@@ -2,11 +2,10 @@ import { FC, useEffect, useState } from "react"
 import { VodInfo, VodStream } from "../services/XtremeCodesAPI.types"
 import { AspectRatio, Button, ButtonGroup, Grid, Typography } from "@mui/joy"
 import { useAppDispatch, useAppSelector } from "../store/hooks"
-import { fetchVODInfo } from "../store/app/thunks"
+import { fetchVodInfoAsync } from "../store/vod/vodSlice"
 import { YoutubeVideo } from "./YoutubeVideo"
 import { Loading } from "./layout/Loading"
-import { selectWatchlist } from "../store/app/selector"
-import { addToWatchlist, removeFromWatchlist } from "../store/app/appSlice"
+import { selectWatchlist, addToWatchlist, removeFromWatchlist } from "../store/watchlist/watchlistSlice"
 import { useVodUrl } from "./useMediaUrl"
 import { copyTextToClibpboard } from "../services/utils"
 
@@ -27,7 +26,7 @@ export const VodInfoComponent: FC<VodInfoProps> = (props) => {
   useEffect(() => {
     if (!vod || !vod.stream_id) return
 
-    dispatch(fetchVODInfo({ vodId: vod.stream_id }))
+    dispatch(fetchVodInfoAsync({ vodId: vod.stream_id }))
       .unwrap()
       .then((info) => {
         setInfo(info)
