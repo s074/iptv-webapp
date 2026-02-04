@@ -203,25 +203,27 @@ export const ChannelEpgComponent: FC<ChannelEpgProps> = (props) => {
           "linear-gradient(135deg, rgba(var(--joy-palette-neutral-mainChannel) / 0.02), rgba(var(--joy-palette-neutral-mainChannel) / 0.06))",
       }}
     >
-      <Grid sm={2}>
+      <Grid sm={2} xs={12}>
          <Box
           sx={{
             display: "flex",
-            alignItems: "stretch",
+            alignItems: "center",
             gap: 1,
             p: 1,
-            height: "100%"}}>
+            width: 100,
+            height: 100
+          }}>
         <ChannelCard
           stream={stream}
           onStreamClick={(stream) => onStreamClick(stream)}
           selected={selected}
         /> </Box>
       </Grid>
-      <Grid sm={10}>
+      <Grid md={10} sm={12}>
         <Box
           sx={{
             display: "flex",
-            alignItems: "stretch",
+            //alignItems: "stretch",
             gap: 1,
             p: 1,
             overflowX: "auto",
