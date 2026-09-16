@@ -4,6 +4,7 @@ import Button from "@mui/material/Button"
 import Paper from "@mui/material/Paper"
 import TextField from "@mui/material/TextField"
 import Typography from "@mui/material/Typography"
+import LiveTvRoundedIcon from "@mui/icons-material/LiveTvRounded"
 import { useState } from "react"
 import { useAppDispatch } from "../../store/hooks"
 import { setApiConfig, setAppStatus } from "../../store/app/appSlice"
@@ -27,7 +28,7 @@ export const Login: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!baseUrl || !baseUrl.toLocaleLowerCase().startsWith("http")) {
-      setError("Invalid url")
+      setError("Enter a valid Xtream server URL starting with http(s)://")
       return
     }
 
@@ -64,7 +65,7 @@ export const Login: React.FC = () => {
     try {
       await dispatch(fetchAccountInfo({ config })).unwrap()
     } catch (e) {
-      setError("There was an error logging in")
+      setError("Could not log in to the Xtream server — check the URL and credentials")
       setStatus("idle")
       return
     }
@@ -89,57 +90,71 @@ export const Login: React.FC = () => {
   }
 
   return (
-    <Box component="main">
+    <Box
+      component="main"
+      sx={{
+        minHeight: "100%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        p: 2,
+      }}
+    >
       <Paper
         elevation={3}
         sx={{
-          width: 300,
-          mx: "auto",
-          my: 4,
+          width: 360,
+          maxWidth: "100%",
           py: 3,
-          px: 2,
+          px: 2.5,
           display: "flex",
           flexDirection: "column",
-          gap: 2,
-          borderRadius: 2,
+          gap: 3,
+          borderRadius: 3,
         }}
         variant="outlined"
       >
-        <div>
-          <Typography variant="h5" component="h1">
-            <b>Welcome!</b>
-          </Typography>
-          <Typography variant="body2" color="text.secondary">Sign in to continue.</Typography>
-        </div>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+          <LiveTvRoundedIcon color="primary" fontSize="large" />
+          <div>
+            <Typography variant="h5" component="h1" sx={{ fontWeight: 700 }}>
+              Xtream Login
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Sign in with your Xtream Codes account.
+            </Typography>
+          </div>
+        </Box>
         {error && error.length > 0 && (
           <Alert severity="error" variant="filled">
             {error}
           </Alert>
         )}
         <TextField
-          label="Url"
+          label="Xtream server URL"
           name="url"
           type="text"
-          placeholder="http://my-url:port"
+          placeholder="http://server.tv:8080"
+          helperText="The host URL (no trailing path needed)."
           value={baseUrl}
           onChange={(e) => setBaseUrl(e.target.value)}
           fullWidth
           size="small"
         />
         <TextField
-          label="Username"
+          label="Xtream username"
           name="username"
-          placeholder="username"
+          placeholder="e.g. johndoe123"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           fullWidth
           size="small"
         />
         <TextField
-          label="Password"
+          label="Xtream password"
           name="password"
           type="password"
-          placeholder="password"
+          placeholder="••••••••"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           fullWidth
@@ -154,9 +169,9 @@ export const Login: React.FC = () => {
           loadingPosition="start"
           variant="contained"
         >
-          {status === "idle" && <>Log in</>}
-          {status === "pending" && <>Submitting</>}
-          {status === "loading" && <>Performing initial load</>}
+          {status === "idle" && <>Connect to Xtream</>}
+          {status === "pending" && <>Verifying Xtream login</>}
+          {status === "loading" && <>Loading your playlist</>}
         </Button>
       </Paper>
     </Box>
