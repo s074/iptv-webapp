@@ -7,15 +7,26 @@ import ListItem from "@mui/material/ListItem"
 import ListItemButton from "@mui/material/ListItemButton"
 import ListItemText from "@mui/material/ListItemText"
 import Badge from "@mui/material/Badge"
+import Button from "@mui/material/Button"
 import Chip from "@mui/material/Chip"
+import Dialog from "@mui/material/Dialog"
+import DialogContent from "@mui/material/DialogContent"
+import DialogTitle from "@mui/material/DialogTitle"
 import IconButton from "@mui/material/IconButton"
 import Paper from "@mui/material/Paper"
 import TextField from "@mui/material/TextField"
 import InputAdornment from "@mui/material/InputAdornment"
 import Typography from "@mui/material/Typography"
+import useMediaQuery from "@mui/material/useMediaQuery"
+import { useTheme } from "@mui/material/styles"
 import { Category, LiveStream } from "../services/XtremeCodesAPI.types"
-import { KeyboardArrowDown, Menu, PlayArrowRounded } from "@mui/icons-material"
+import { PlayArrowRounded } from "@mui/icons-material"
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded"
+import FolderRoundedIcon from "@mui/icons-material/FolderRounded"
+import CheckRoundedIcon from "@mui/icons-material/CheckRounded"
+import CloseRoundedIcon from "@mui/icons-material/CloseRounded"
+import KeyboardArrowDownRoundedIcon from "@mui/icons-material/KeyboardArrowDownRounded"
+import { glassDialogSlotProps } from "../components/glassDialog"
 import { containerToMimeType } from "../services/utils"
 import videojs from "video.js"
 import Player from "video.js/dist/types/player"
@@ -49,6 +60,22 @@ const GuideScroller = forwardRef<
 ))
 GuideScroller.displayName = "GuideScroller"
 
+const PickerScroller = forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>((props, ref) => (
+  <Box
+    ref={ref}
+    {...props}
+    sx={{
+      overflowY: "auto",
+      overflowX: "hidden",
+      ...thinScrollbarSx,
+    }}
+  />
+))
+PickerScroller.displayName = "PickerScroller"
+
 export const LiveTV: FC = () => {
   const liveStreams = useAppSelector(selectLiveStreams)
   const liveStreamCategories = useAppSelector(selectLiveCategories)
@@ -58,11 +85,14 @@ export const LiveTV: FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<
     Category | undefined
   >(undefined)
-  const [categoriesCollapsed, setCategoriesCollapsed] = useState(true)
+  const [catPickerOpen, setCatPickerOpen] = useState(false)
+  const [catQuery, setCatQuery] = useState("")
   const [channelFilter, setChannelFilter] = useState("")
   const [searchParams, setSearchParams] = useSearchParams()
   const playerRef = useRef<Player | null>(null)
   const url = useChannelUrl(selectedStream?.stream_id ?? 0, "m3u8")
+  const theme = useTheme()
+  const fullScreenPicker = useMediaQuery(theme.breakpoints.down("sm"))
 
   const channelId = searchParams.get("channel")
 
@@ -121,6 +151,19 @@ export const LiveTV: FC = () => {
       s.name?.toLocaleLowerCase().includes(q),
     )
   }, [liveStreams, selectedCategory, channelFilter])
+
+  const filteredCategories = useMemo(() => {
+    const q = catQuery.trim().toLocaleLowerCase()
+    if (!q) return liveStreamCategories
+    return liveStreamCategories.filter((c) =>
+      c.category_name?.toLocaleLowerCase().includes(q),
+    )
+  }, [liveStreamCategories, catQuery])
+
+  const pickCategory = useCallback((category: Category) => {
+    setSelectedCategory(category)
+    setCatPickerOpen(false)
+  }, [])
 
   const videoJsOptions = useCallback(() => {
     return {
@@ -208,13 +251,13 @@ export const LiveTV: FC = () => {
         </Paper>
       )}
 
-      {/* Guide header — clock-style category + count + filter */}
+      {/* Guide header — category picker + count + filter */}
       <Paper
         elevation={0}
         sx={{
           display: "flex",
           alignItems: "center",
-          gap: 2,
+          gap: 1.5,
           px: 2,
           py: 1,
           borderRadius: 2,
@@ -224,9 +267,24 @@ export const LiveTV: FC = () => {
           flexWrap: "wrap",
         }}
       >
-        <Typography variant="subtitle1" noWrap sx={{ fontWeight: 600 }}>
-          {selectedCategory?.category_name ?? "Live TV"}
-        </Typography>
+        <Button
+          variant="outlined"
+          startIcon={<FolderRoundedIcon />}
+          endIcon={<KeyboardArrowDownRoundedIcon />}
+          onClick={() => {
+            setCatQuery("")
+            setCatPickerOpen(true)
+          }}
+          sx={{
+            borderRadius: 2,
+            textTransform: "none",
+            maxWidth: { xs: "100%", sm: 320 },
+          }}
+        >
+          <Typography variant="body2" noWrap sx={{ fontWeight: 600 }}>
+            {selectedCategory?.category_name ?? "Categories"}
+          </Typography>
+        </Button>
         <Typography variant="caption" color="text.secondary" sx={{ fontVariantNumeric: "tabular-nums" }}>
           {categoryLiveStreams.length} channels
         </Typography>
@@ -248,107 +306,14 @@ export const LiveTV: FC = () => {
         />
       </Paper>
 
-      {/* Guide body */}
+      {/* Guide body — full-width channel list */}
       <Box
         sx={{
           flex: 1,
           minHeight: 0,
           display: "flex",
-          flexDirection: { xs: "column", md: "row" },
         }}
       >
-        {/* Categories — collapsible on mobile, sticky list on desktop */}
-        <Box
-          sx={{
-            width: { md: 264 },
-            flexShrink: 0,
-            borderRight: { md: "1px solid" },
-            borderBottom: { xs: "1px solid", md: "none" },
-            borderColor: "divider",
-            maxHeight: { xs: categoriesCollapsed ? 48 : 320, md: "100%" },
-            overflow: "hidden",
-            transition: "max-height 0.25s ease",
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
-          <Box
-            sx={{
-              display: { xs: "flex", md: "none" },
-              alignItems: "center",
-              justifyContent: "space-between",
-              p: 1,
-              cursor: "pointer",
-            }}
-            onClick={() => setCategoriesCollapsed((c) => !c)}
-          >
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1, minWidth: 0 }}>
-              <Menu fontSize="small" />
-              <Typography variant="subtitle2" noWrap>
-                {selectedCategory?.category_name || "Categories"}
-              </Typography>
-            </Box>
-            <IconButton size="small" aria-label="toggle categories">
-              <KeyboardArrowDown
-                sx={{
-                  transform: categoriesCollapsed ? "rotate(0deg)" : "rotate(180deg)",
-                  transition: "transform 0.2s ease-in-out",
-                }}
-              />
-            </IconButton>
-          </Box>
-          <Box
-            sx={{
-              display: { xs: categoriesCollapsed ? "none" : "block", md: "block" },
-              overflowY: "auto",
-              p: 1,
-              ...thinScrollbarSx,
-            }}
-          >
-            <List dense disablePadding>
-              {liveStreamCategories.map((category) => (
-                <ListItem key={category.category_id} disablePadding sx={{ mb: 0.5 }}>
-                  <ListItemButton
-                    onClick={() => {
-                      setSelectedCategory(category)
-                      setCategoriesCollapsed(true)
-                    }}
-                    selected={selectedCategory === category}
-                    sx={{
-                      borderRadius: 2,
-                      border: "1px solid transparent",
-                      "&.Mui-selected": {
-                        bgcolor: "rgba(0, 212, 255, 0.12)",
-                        borderColor: "rgba(0,212,255,0.35)",
-                      },
-                      "&:hover": { bgcolor: "action.hover" },
-                    }}
-                  >
-                    <ListItemText
-                      primary={category.category_name}
-                      slotProps={{
-                        primary: {
-                          noWrap: true,
-                          variant: "body2",
-                          sx: {
-                            fontWeight:
-                              selectedCategory === category ? 600 : 400,
-                          },
-                        },
-                      }}
-                    />
-                    <Badge
-                      badgeContent={categoryCounts.get(String(category.category_id)) ?? 0}
-                      color={selectedCategory === category ? "primary" : "default"}
-                      sx={{ ml: 1, "& .MuiBadge-badge": { fontSize: 10 } }}
-                    />
-                  </ListItemButton>
-                </ListItem>
-              ))}
-            </List>
-          </Box>
-        </Box>
-
         <Box sx={{ flex: 1, minWidth: 0, minHeight: 0, p: 1 }}>
           {categoryLiveStreams.length === 0 ? (
             <Box
@@ -392,6 +357,113 @@ export const LiveTV: FC = () => {
           )}
         </Box>
       </Box>
+
+      {/* Mobile category picker modal — same pattern as Movies/TVShows */}
+      <Dialog
+        open={catPickerOpen}
+        onClose={() => setCatPickerOpen(false)}
+        fullScreen={fullScreenPicker}
+        maxWidth="xs"
+        fullWidth
+        scroll="paper"
+        slotProps={glassDialogSlotProps}
+      >
+        <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1, pr: 1 }}>
+          <Typography variant="subtitle1" sx={{ flex: 1, fontWeight: 600 }}>
+            Browse categories
+          </Typography>
+          <IconButton
+            size="small"
+            onClick={() => setCatPickerOpen(false)}
+            aria-label="close categories"
+          >
+            <CloseRoundedIcon fontSize="small" />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers sx={{ p: 0, display: "flex", flexDirection: "column" }}>
+          <Box sx={{ p: 1.5, pb: 1 }}>
+            <TextField
+              size="small"
+              fullWidth
+              autoFocus
+              placeholder="Search categories…"
+              value={catQuery}
+              onChange={(e) => setCatQuery(e.target.value)}
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchRoundedIcon fontSize="small" />
+                    </InputAdornment>
+                  ),
+                },
+              }}
+            />
+          </Box>
+          <Box sx={{ height: fullScreenPicker ? "100%" : 420, minHeight: 0 }}>
+            {filteredCategories.length === 0 ? (
+              <Box sx={{ p: 3, textAlign: "center" }}>
+                <Typography variant="body2" color="text.secondary">
+                  No categories match “{catQuery}”.
+                </Typography>
+              </Box>
+            ) : (
+              <Virtuoso
+                data={filteredCategories}
+                computeItemKey={(_, c) => c.category_id ?? c.category_name ?? Math.random()}
+                components={{ Scroller: PickerScroller }}
+                itemContent={(_, category) => {
+                  const selected = category === selectedCategory
+                  return (
+                    <ListItem disablePadding sx={{ px: 1 }}>
+                      <ListItemButton
+                        selected={selected}
+                        onClick={() => pickCategory(category)}
+                        sx={{
+                          borderRadius: 2,
+                          border: "1px solid transparent",
+                          "&.Mui-selected": {
+                            bgcolor: "rgba(0, 212, 255, 0.12)",
+                            borderColor: "rgba(0,212,255,0.35)",
+                          },
+                        }}
+                      >
+                        {selected && (
+                          <CheckRoundedIcon
+                            fontSize="small"
+                            color="primary"
+                            sx={{ mr: 1 }}
+                          />
+                        )}
+                        <ListItemText
+                          primary={category.category_name}
+                          slotProps={{
+                            primary: {
+                              noWrap: true,
+                              variant: "body2",
+                              sx: { fontWeight: selected ? 600 : 400 },
+                            },
+                          }}
+                        />
+                        <Badge
+                          badgeContent={categoryCounts.get(String(category.category_id)) ?? 0}
+                          color={selected ? "primary" : "default"}
+                          sx={{ ml: 1, "& .MuiBadge-badge": { fontSize: 10 } }}
+                        />
+                      </ListItemButton>
+                    </ListItem>
+                  )
+                }}
+              />
+            )}
+          </Box>
+          <Box sx={{ px: 2, py: 1, borderTop: "1px solid", borderColor: "divider" }}>
+            <Typography variant="caption" color="text.secondary">
+              {filteredCategories.length} of {liveStreamCategories.length} categories
+            </Typography>
+          </Box>
+        </DialogContent>
+      </Dialog>
     </Box>
   )
 }
