@@ -15,6 +15,7 @@ import Typography from "@mui/material/Typography"
 import { SeriesInfoComponent } from "../../components/SeriesInfoComponent"
 import { containerToMimeType } from "../../services/utils"
 import { useEpisodeUrl } from "../../components/useMediaUrl"
+import { thinScrollbarSx } from "../../components/scrollbar"
 
 export const WatchSeries: FC = () => {
   const { id } = useParams()
@@ -78,7 +79,16 @@ export const WatchSeries: FC = () => {
   }
 
   return (
-    <Box>
+    <Box
+      sx={{
+        height: "100%",
+        minHeight: 0,
+        overflowY: "auto",
+        overflowX: "hidden",
+        pb: 4,
+        ...thinScrollbarSx,
+      }}
+    >
       {stream && (
         <>
           <Box sx={{ height: "22px" }}>

@@ -8,13 +8,10 @@ function Root(props: BoxProps) {
       sx={[
         {
           bgcolor: "background.default",
-          display: "grid",
-          gridTemplateColumns: {
-            xs: "1fr",
-          },
-          gridTemplateRows: "64px 1fr",
-          height: "100%",
-          maxHeight: "100%",
+          display: "flex",
+          flexDirection: "column",
+          height: "100dvh",
+          overflow: "hidden",
         },
         ...(Array.isArray(props.sx) ? props.sx : [props.sx]),
       ]}
@@ -29,19 +26,25 @@ function Header(props: BoxProps) {
       {...props}
       sx={[
         {
-          p: 2,
+          px: 2,
+          py: 1,
           gap: 2,
-          bgcolor: "background.paper",
+          minHeight: 64,
+          bgcolor: (theme) =>
+            theme.palette.mode === "dark"
+              ? "rgba(18, 22, 29, 0.85)"
+              : "rgba(255, 255, 255, 0.85)",
+          backdropFilter: "blur(12px)",
           display: "flex",
           flexDirection: "row",
           justifyContent: "space-between",
           alignItems: "center",
-          gridColumn: "1 / -1",
           borderBottom: "1px solid",
           borderColor: "divider",
           position: "sticky",
           top: 0,
           zIndex: 1100,
+          flexShrink: 0,
         },
         ...(Array.isArray(props.sx) ? props.sx : [props.sx]),
       ]}
@@ -78,7 +81,17 @@ function Main(props: BoxProps) {
       component="main"
       className="Main"
       {...props}
-      sx={[{ p: 2 }, ...(Array.isArray(props.sx) ? props.sx : [props.sx])]}
+      sx={[
+        {
+          flex: 1,
+          minHeight: 0,
+          overflow: "hidden",
+          p: 2,
+          display: "flex",
+          flexDirection: "column",
+        },
+        ...(Array.isArray(props.sx) ? props.sx : [props.sx]),
+      ]}
     />
   )
 }
@@ -101,7 +114,10 @@ function SideDrawer({
         sx={{
           position: "absolute",
           inset: 0,
-          bgcolor: "rgba(0, 0, 0, 0.5)",
+          bgcolor: (theme) =>
+            theme.palette.mode === "dark"
+              ? "rgba(0, 0, 0, 0.5)"
+              : "rgba(0, 0, 0, 0.25)",
         }}
       />
       <Paper

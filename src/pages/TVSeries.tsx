@@ -1,4 +1,4 @@
-import { FC, useState } from "react"
+import { FC, useMemo, useState } from "react"
 import { SeriesStream } from "../services/XtremeCodesAPI.types"
 import { useAppSelector } from "../store/hooks"
 import {
@@ -6,7 +6,8 @@ import {
   selectSeriesStreams,
 } from "../store/series/seriesSlice"
 import { MediaInfoModal } from "../components/MediaInfoModal"
-import { MediaVirtualizedList } from "../components/MediaVirtualizedList"
+import { MediaCard } from "../components/MediaCard"
+import { CategoryBrowser } from "../components/CategoryBrowser"
 
 export const TVSeries: FC = () => {
   const seriesStreams = useAppSelector(selectSeriesStreams)
@@ -15,10 +16,14 @@ export const TVSeries: FC = () => {
     undefined,
   )
 
-  const onSeriesClick = (series: SeriesStream) => {
-    console.log(series)
-    setCurrentSeries(series)
-  }
+  const categories = useMemo(
+    () =>
+      seriesCategories.map((c) => ({
+        id: String(c.category_id),
+        name: c.category_name ?? "Unknown",
+      })),
+    [seriesCategories],
+  )
 
   return (
     <>
@@ -28,10 +33,18 @@ export const TVSeries: FC = () => {
           stream={currentSeries}
         />
       )}
-      <MediaVirtualizedList
-        categories={seriesCategories}
-        streams={seriesStreams}
-        onStreamClick={onSeriesClick}
+      <CategoryBrowser<SeriesStream>
+        categories={categories}
+        items={seriesStreams}
+        getCategoryId={(s) =>
+          s.category_id !== undefined ? String(s.category_id) : undefined
+        }
+        getItemKey={(s) => s.series_id ?? s.name ?? Math.random()}
+        renderCard={(series) => (
+          <MediaCard onStreamClick={setCurrentSeries} stream={series} />
+        )}
+        selectedCategoryId={undefined}
+        onSelectCategory={() => {}}
       />
     </>
   )

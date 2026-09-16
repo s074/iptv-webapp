@@ -1,6 +1,6 @@
 import Box from "@mui/material/Box"
-import Grid from "@mui/material/Grid"
-import { FC, useCallback, useState } from "react"
+import Typography from "@mui/material/Typography"
+import { FC, useMemo, useState } from "react"
 import { useAppSelector } from "../store/hooks"
 import {
   selectSeriesStreams,
@@ -8,19 +8,26 @@ import {
 import { SeriesStream, VodStream } from "../services/XtremeCodesAPI.types"
 import { MediaInfoModal } from "../components/MediaInfoModal"
 import { MediaCard } from "../components/MediaCard"
+import { MediaGrid } from "../components/MediaGrid"
 import { selectWatchlist } from "../store/watchlist/watchlistSlice"
 import { selectVodStreams } from "../store/vod/vodSlice"
+
+type WatchItem = VodStream | SeriesStream
+
+function isSeriesItem(item: WatchItem): item is SeriesStream {
+  return (item as SeriesStream).series_id !== undefined
+}
 
 export const Watchlist: FC = () => {
   const watchlist = useAppSelector(selectWatchlist)
   const vodStreams = useAppSelector(selectVodStreams)
   const seriesStreams = useAppSelector(selectSeriesStreams)
-  const [selectedStream, setSelectedStream] = useState<
-    (VodStream | SeriesStream) | undefined
-  >(undefined)
+  const [selectedStream, setSelectedStream] = useState<WatchItem | undefined>(
+    undefined,
+  )
 
-  const watchlistItems = useCallback(() => {
-    const items: (VodStream | SeriesStream)[] = []
+  const watchlistItems = useMemo(() => {
+    const items: WatchItem[] = []
 
     for (const item of watchlist) {
       if (item.type === "vod") {
@@ -45,18 +52,30 @@ export const Watchlist: FC = () => {
           stream={selectedStream}
         />
       )}
-      <Box sx={{ flexGrow: 1, height: "100%", paddingBottom: 5 }}>
-        <Grid container spacing={2} sx={{ justifyContent: "flex-start" }}>
-          {watchlistItems().map((item, index) => (
-            <Grid
-              size={{ xs: 12, sm: 6, md: 4, lg: 3, xl: 2 }}
-              key={index}
-              sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 300 }}
-            >
+      <Box sx={{ height: "100%", minHeight: 0, display: "flex", flexDirection: "column" }}>
+        <Box sx={{ display: "flex", alignItems: "baseline", gap: 1.5, px: 2.5, py: 1.5 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+            Watchlist
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            {watchlistItems.length} titles
+          </Typography>
+        </Box>
+        <Box sx={{ flex: 1, minHeight: 0 }}>
+          <MediaGrid<WatchItem>
+            items={watchlistItems}
+            itemKey={(item) =>
+              isSeriesItem(item)
+                ? (item.series_id ?? item.name ?? Math.random())
+                : (item.stream_id ?? item.name ?? Math.random())
+            }
+            renderCard={(item) => (
               <MediaCard onStreamClick={setSelectedStream} stream={item} />
-            </Grid>
-          ))}
-        </Grid>
+            )}
+            emptyTitle="Watchlist is empty"
+            emptyHint="Add movies or series from their info dialog."
+          />
+        </Box>
       </Box>
     </>
   )

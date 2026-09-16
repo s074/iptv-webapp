@@ -11,6 +11,7 @@ import { VodInfoComponent } from "../../components/VodInfoComponent"
 import Box from "@mui/material/Box"
 import Container from "@mui/material/Container"
 import { useVodUrl } from "../../components/useMediaUrl"
+import { thinScrollbarSx } from "../../components/scrollbar"
 
 export const WatchMovie: FC = () => {
   const { id } = useParams()
@@ -61,7 +62,16 @@ export const WatchMovie: FC = () => {
   }
 
   return (
-    <Box>
+    <Box
+      sx={{
+        height: "100%",
+        minHeight: 0,
+        overflowY: "auto",
+        overflowX: "hidden",
+        pb: 4,
+        ...thinScrollbarSx,
+      }}
+    >
       {stream && (
         <>
           <Container maxWidth="lg">

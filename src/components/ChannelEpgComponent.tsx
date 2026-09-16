@@ -1,16 +1,15 @@
-import { FC, useMemo } from "react"
+import { FC, memo, useMemo } from "react"
 import {
   LiveStream,
   LiveStreamEPG,
   LiveStreamEPGItem,
 } from "../services/XtremeCodesAPI.types"
 import Box from "@mui/material/Box"
-import Grid from "@mui/material/Grid"
 import Typography from "@mui/material/Typography"
 import Chip from "@mui/material/Chip"
-import { ChannelCard } from "./ChannelCard"
 import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded"
 import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded"
+import LiveTvRoundedIcon from "@mui/icons-material/LiveTvRounded"
 import { b64DecodeUnicode } from "../services/utils"
 
 export interface ChannelEpgProps {
@@ -19,6 +18,7 @@ export interface ChannelEpgProps {
   onStreamClick: (stream: LiveStream) => void
   stream: LiveStream
   selected?: boolean
+  hideChannelInfo?: boolean
 }
 
 // Helper to format time from timestamp or ISO string
@@ -51,7 +51,6 @@ const getProgress = (item: LiveStreamEPGItem): number => {
 const decodeTitle = (title?: string): string => {
   if (!title) return "Unknown Program"
   try {
-    // Check if it looks like base64
     const decodedTitle = b64DecodeUnicode(title);
     return decodedTitle;
   } catch {
@@ -60,34 +59,40 @@ const decodeTitle = (title?: string): string => {
   return title
 }
 
-const EpgItem: FC<{ item: LiveStreamEPGItem }> = ({ item }) => {
-  const isNowPlaying = item.now_playing === 1 || ( !!item.start_timestamp && !!item.stop_timestamp && item.start_timestamp < Date.now() / 1000 && item.stop_timestamp > Date.now() / 1000)
+const EpgItem: FC<{ item: LiveStreamEPGItem }> = memo(({ item }) => {
+  const nowSec = Date.now() / 1000
+  const isNowPlaying =
+    item.now_playing === 1 ||
+    (!!item.start_timestamp &&
+      !!item.stop_timestamp &&
+      item.start_timestamp < nowSec &&
+      item.stop_timestamp > nowSec)
   const progress = getProgress(item)
   const title = decodeTitle(item.title)
 
   return (
     <Box
       sx={{
-        minWidth: 200,
+        minWidth: 210,
         maxWidth: 280,
-        height: "100%",
         p: 1.5,
         position: "relative",
         overflow: "hidden",
-        borderRadius: 1,
-        backgroundColor: isNowPlaying
-          ? "rgba(25, 118, 210, 0.15)"
-          : "rgba(128, 128, 128, 0.05)",
-        border: isNowPlaying ? "1px solid" : "1px solid transparent",
-        borderColor: isNowPlaying ? "primary.light" : "transparent",
-        transition: "all 0.2s ease-in-out",
+        borderRadius: 2,
+        bgcolor: isNowPlaying
+          ? "rgba(0, 212, 255, 0.10)"
+          : "rgba(255,255,255,0.03)",
+        border: "1px solid",
+        borderColor: isNowPlaying
+          ? "rgba(0,212,255,0.45)"
+          : "rgba(255,255,255,0.06)",
+        transition: "transform 0.15s ease, border-color 0.15s ease, background 0.15s ease",
         "&:hover": {
           transform: "translateY(-2px)",
-          boxShadow: 1,
+          borderColor: "rgba(0,212,255,0.35)",
         },
       }}
     >
-      {/* Progress bar for currently airing */}
       {isNowPlaying && progress > 0 && (
         <Box
           sx={{
@@ -96,13 +101,11 @@ const EpgItem: FC<{ item: LiveStreamEPGItem }> = ({ item }) => {
             left: 0,
             height: 3,
             width: `${progress}%`,
-            background: "linear-gradient(90deg, #42a5f5, #1976d2)",
-            borderRadius: "0 2px 0 0",
+            background: "linear-gradient(90deg, #00d4ff, #1976d2)",
           }}
         />
       )}
 
-      {/* Now Playing Badge */}
       {isNowPlaying && (
         <Chip
           size="small"
@@ -114,20 +117,13 @@ const EpgItem: FC<{ item: LiveStreamEPGItem }> = ({ item }) => {
             top: 6,
             right: 6,
             fontSize: "0.65rem",
+            fontWeight: 700,
             height: 20,
           }}
         />
       )}
 
-      {/* Time */}
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          gap: 0.5,
-          mb: 0.5,
-        }}
-      >
+      <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mb: 0.5 }}>
         <AccessTimeRoundedIcon
           sx={{
             fontSize: 12,
@@ -139,6 +135,7 @@ const EpgItem: FC<{ item: LiveStreamEPGItem }> = ({ item }) => {
           sx={{
             color: isNowPlaying ? "primary.light" : "text.disabled",
             fontWeight: 500,
+            fontVariantNumeric: "tabular-nums",
           }}
         >
           {formatTime(item.start_timestamp, item.start)} -{" "}
@@ -146,7 +143,6 @@ const EpgItem: FC<{ item: LiveStreamEPGItem }> = ({ item }) => {
         </Typography>
       </Box>
 
-      {/* Title */}
       <Typography
         variant="body2"
         sx={{
@@ -163,89 +159,151 @@ const EpgItem: FC<{ item: LiveStreamEPGItem }> = ({ item }) => {
       </Typography>
     </Box>
   )
-}
+})
+EpgItem.displayName = "EpgItem"
 
-export const ChannelEpgComponent: FC<ChannelEpgProps> = (props) => {
-  const { epg, offset, stream, onStreamClick, selected } = props
+export const ChannelEpgComponent: FC<ChannelEpgProps> = memo((props) => {
+  const { epg, stream, onStreamClick, selected, hideChannelInfo = false } = props
 
   // Sort EPG listings by start time and filter to reasonable window
+  // (same logic as before — looks only)
   const sortedListings = useMemo(() => {
     if (!epg?.epg_listings?.length) return []
     const now = Date.now() / 1000
     return [...epg.epg_listings]
       .filter((item) => {
-        // Show items that haven't ended yet or are within 24h window
         const end = item.stop_timestamp ?? Infinity
-        return end > now - 3600 // Include recently ended (within 1hr)
+        return end > now - 3600
       })
       .sort((a, b) => (a.start_timestamp ?? 0) - (b.start_timestamp ?? 0))
-      .slice(0, 10) // Limit to 10 items for performance
+      .slice(0, 10)
   }, [epg?.epg_listings])
 
   return (
-    <Grid
-      container
+    <Box
+      onClick={() => onStreamClick(stream)}
       sx={{
-        borderTop: "1px solid",
-        borderBottom: "1px solid",
-        borderColor: "divider",
+        display: "flex",
+        alignItems: "stretch",
         gap: 0,
-        minHeight: 100,
+        minHeight: 76,
+        borderRadius: 2,
+        cursor: "pointer",
+        position: "relative",
+        overflow: "hidden",
+        bgcolor: selected ? "rgba(0,212,255,0.08)" : "transparent",
+        border: "1px solid transparent",
+        borderColor: selected ? "rgba(0,212,255,0.45)" : "transparent",
+        borderBottom: "1px solid rgba(255,255,255,0.06)",
+        transition: "background 0.15s ease",
+        "&:hover": { bgcolor: "rgba(255,255,255,0.03)" },
+        ...(selected
+          ? {
+              "&::before": {
+                content: '""',
+                position: "absolute",
+                left: 0,
+                top: 10,
+                bottom: 10,
+                width: 3,
+                borderRadius: "0 3px 3px 0",
+                background: "#00d4ff",
+                boxShadow: "0 0 12px rgba(0,212,255,0.8)",
+              },
+            }
+          : {}),
       }}
     >
-      <Grid size={{ xs: 12, sm: 2 }}>
-         <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: 1,
-            p: 1,
-            width: 100,
-            height: 100
-          }}>
-        <ChannelCard
-          stream={stream}
-          onStreamClick={(stream) => onStreamClick(stream)}
-          selected={selected}
-        /> </Box>
-      </Grid>
-      <Grid size={{ xs: 12, sm: 12, md: 10 }}>
+      {!hideChannelInfo && (
+      <Box
+        sx={{
+          width: { xs: 180, sm: 264 },
+          flexShrink: 0,
+          display: "flex",
+          alignItems: "center",
+          gap: 1.5,
+          px: 2,
+          py: 1,
+          borderRight: "1px solid rgba(255,255,255,0.06)",
+        }}
+      >
         <Box
           sx={{
+            width: 42,
+            height: 42,
+            borderRadius: 1.5,
+            overflow: "hidden",
+            flexShrink: 0,
+            bgcolor: "rgba(255,255,255,0.08)",
             display: "flex",
-            gap: 1,
-            p: 1,
-            overflowX: "auto",
-            height: "100%",
-            "&::-webkit-scrollbar": {
-              height: 6,
-            },
-            "&::-webkit-scrollbar-track": {
-              background: "transparent",
-            },
+            alignItems: "center",
+            justifyContent: "center",
           }}
         >
-          {sortedListings.length > 0 ? (
-            sortedListings.map((item, index) => (
-              <EpgItem key={item.id ?? `epg-${index}`} item={item} />
-            ))
-          ) : (
+          {stream.stream_icon ? (
             <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                width: "100%",
-                color: "text.disabled",
-              }}
-            >
-              <Typography variant="body2" sx={{ fontStyle: "italic" }}>
-                No program information available
-              </Typography>
-            </Box>
+              component="img"
+              src={stream.stream_icon}
+              alt=""
+              loading="lazy"
+              sx={{ width: "100%", height: "100%", objectFit: "contain" }}
+            />
+          ) : (
+            <LiveTvRoundedIcon fontSize="small" sx={{ color: "text.disabled" }} />
           )}
         </Box>
-      </Grid>
-    </Grid>
+        <Typography
+          variant="body2"
+          noWrap
+          title={stream.name}
+          sx={{ flex: 1, minWidth: 0, fontWeight: selected ? 600 : 500 }}
+        >
+          {stream.name}
+        </Typography>
+      </Box>
+      )}
+
+      {/* Programs — horizontal scroll, thin scrollbar */}
+      <Box
+        sx={{
+          flex: 1,
+          minWidth: 0,
+          display: "flex",
+          alignItems: "stretch",
+          gap: 1,
+          p: 1,
+          overflowX: "auto",
+          scrollbarWidth: "thin",
+          scrollbarColor: "rgba(255,255,255,0.15) transparent",
+          "&::-webkit-scrollbar": { height: 6 },
+          "&::-webkit-scrollbar-track": { background: "transparent" },
+          "&::-webkit-scrollbar-thumb": {
+            background: "rgba(255,255,255,0.15)",
+            borderRadius: 3,
+          },
+          "&::-webkit-scrollbar-thumb:hover": { background: "#00d4ff" },
+        }}
+      >
+        {sortedListings.length > 0 ? (
+          sortedListings.map((item, index) => (
+            <EpgItem key={item.id ?? `epg-${index}`} item={item} />
+          ))
+        ) : (
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              px: 1,
+              color: "text.disabled",
+            }}
+          >
+            <Typography variant="body2" sx={{ fontStyle: "italic" }} noWrap>
+              No program info
+            </Typography>
+          </Box>
+        )}
+      </Box>
+    </Box>
   )
-}
+})
+ChannelEpgComponent.displayName = "ChannelEpgComponent"

@@ -2,7 +2,6 @@ import { FC, useEffect, useState } from "react"
 import { VodInfo, VodStream } from "../services/XtremeCodesAPI.types"
 import Box from "@mui/material/Box"
 import Button from "@mui/material/Button"
-import ButtonGroup from "@mui/material/ButtonGroup"
 import Grid from "@mui/material/Grid"
 import Typography from "@mui/material/Typography"
 import { useAppDispatch, useAppSelector } from "../store/hooks"
@@ -67,25 +66,30 @@ export const VodInfoComponent: FC<VodInfoProps> = (props) => {
   return (
     <Grid
       container
-      spacing={1}
+      spacing={2}
       sx={{
         flexGrow: 1,
         justifyContent: "center",
-        marginTop: 5,
+        marginTop: 1,
       }}
     >
-      <Grid size={{ xs: 12, md: 5 }} sx={{ justifyContent: "center", alignContent: "center" }}>
+      <Grid size={{ xs: 12, md: 4 }} sx={{ display: "flex", justifyContent: "center", alignItems: "flex-start" }}>
         {showTrailer && <YoutubeVideo id={info?.info?.youtube_trailer ?? ""} />}
         {!showTrailer && (
           <Box
             component="img"
             src={vod.stream_icon}
             alt=""
-            sx={{ width: "100%", objectFit: "contain" }}
+            sx={{
+              width: "100%",
+              maxWidth: { xs: 200, md: 260 },
+              objectFit: "contain",
+              borderRadius: 2,
+            }}
           />
         )}
       </Grid>
-      <Grid size={{ xs: 12, md: 7 }}>
+      <Grid size={{ xs: 12, md: 8 }} sx={{ minWidth: 0 }}>
         <div style={{ justifyContent: "center" }}>
           {state === "ready" && (
             <>
@@ -114,15 +118,16 @@ export const VodInfoComponent: FC<VodInfoProps> = (props) => {
               There was an error loading information for that title
             </Typography>
           )}
-          <ButtonGroup sx={{ margin: 5 }} variant="contained">
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 2 }}>
             <Button
+              variant="contained"
               color="inherit"
               onClick={() => setTrailerVisible((prev) => !prev)}
               disabled={!info || !info.info?.youtube_trailer}
             >
               Watch Trailer
             </Button>
-            <Button color="primary" onClick={toggleWatchlist}>
+            <Button variant="contained" color="primary" onClick={toggleWatchlist}>
               {watchlist.find(
                 (element) =>
                   element.id === vod.stream_id && element.type === "vod",
@@ -132,12 +137,13 @@ export const VodInfoComponent: FC<VodInfoProps> = (props) => {
             </Button>
             {playButton !== undefined && playButton}
             <Button
+              variant="contained"
               color="inherit"
               onClick={() => onClickCopy()}
             >
               Copy Video Url
             </Button>
-          </ButtonGroup>
+          </Box>
         </div>
       </Grid>
     </Grid>

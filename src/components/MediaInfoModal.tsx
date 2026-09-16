@@ -11,7 +11,10 @@ import Dialog from "@mui/material/Dialog"
 import DialogContent from "@mui/material/DialogContent"
 import DialogTitle from "@mui/material/DialogTitle"
 import IconButton from "@mui/material/IconButton"
+import useMediaQuery from "@mui/material/useMediaQuery"
+import { useTheme } from "@mui/material/styles"
 import CloseIcon from "@mui/icons-material/Close"
+import { glassDialogSlotProps } from "./glassDialog"
 import { VodInfoComponent } from "./VodInfoComponent"
 import { isLive, isSeries, isVod } from "../services/utils"
 import { SeriesInfoComponent } from "./SeriesInfoComponent"
@@ -31,6 +34,8 @@ export const MediaInfoModal: FC<MediaInfoModalProps> = (props) => {
   const [selectedEpisode, setSelectedEpisode] = useState<
     SeriesEpisode | undefined
   >(undefined) // for series only
+  const theme = useTheme()
+  const fullScreen = useMediaQuery(theme.breakpoints.down("sm"))
 
   const onClickWatch = () => {
     if (isVod(stream)) {
@@ -52,8 +57,16 @@ export const MediaInfoModal: FC<MediaInfoModalProps> = (props) => {
   }
 
   return (
-    <Dialog open={true} onClose={onClose} maxWidth="md" fullWidth scroll="paper">
-      <DialogTitle sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+    <Dialog
+      open={true}
+      onClose={onClose}
+      maxWidth="md"
+      fullWidth
+      fullScreen={fullScreen}
+      scroll="paper"
+      slotProps={glassDialogSlotProps}
+    >
+      <DialogTitle sx={{ pr: 6 }}>
         {stream?.name}
         <IconButton
           aria-label="close"
@@ -63,8 +76,8 @@ export const MediaInfoModal: FC<MediaInfoModalProps> = (props) => {
           <CloseIcon />
         </IconButton>
       </DialogTitle>
-      <DialogContent dividers>
-        <Box sx={{ minWidth: 300 }}>
+      <DialogContent dividers sx={{ minWidth: 0 }}>
+        <Box sx={{ minWidth: 0, overflowX: "hidden" }}>
           {isVod(stream) && (
             <VodInfoComponent
               vod={stream}

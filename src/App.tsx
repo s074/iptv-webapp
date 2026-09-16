@@ -106,9 +106,7 @@ function App() {
                 </IconButton>
               </Box>
             </Layout.Header>
-            <Layout.Main sx={{
-              maxHeight: "calc(100% - 64px)",
-            }}>
+            <Layout.Main>
               <Routes>
                 <Route path={urls.home} element={<Dashboard />} />
                 <Route path={urls.liveTv} element={<LiveTV />} />

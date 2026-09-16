@@ -1,15 +1,11 @@
-import { FC, useCallback, useMemo, useState } from "react"
+import { FC, memo } from "react"
 import { SeriesEpisode } from "../services/XtremeCodesAPI.types"
-import useMediaQuery from "@mui/material/useMediaQuery"
-import { useTheme } from "@mui/material/styles"
 import Box from "@mui/material/Box"
 import Card from "@mui/material/Card"
 import CardActionArea from "@mui/material/CardActionArea"
 import CardContent from "@mui/material/CardContent"
-import IconButton from "@mui/material/IconButton"
 import Typography from "@mui/material/Typography"
-import ArrowBackIcon from "@mui/icons-material/ArrowBack"
-import ArrowForwardIcon from "@mui/icons-material/ArrowForward"
+import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded"
 
 export interface EpisodesCarouselProps {
   episodes: SeriesEpisode[]
@@ -17,141 +13,82 @@ export interface EpisodesCarouselProps {
   onEpisodeClick: (episode: SeriesEpisode) => void
 }
 
-export const EpisodesCarousel: FC<EpisodesCarouselProps> = (props) => {
+export const EpisodesCarousel: FC<EpisodesCarouselProps> = memo((props) => {
   const { episodes, onEpisodeClick, activeEpisode } = props
-  const [currentPage, setCurrentPage] = useState(0)
-  const theme = useTheme()
-  const isSmScreen = useMediaQuery(theme.breakpoints.up("sm"))
-  const ismdScreen = useMediaQuery(theme.breakpoints.up("md"))
-  const isLargeScreen = useMediaQuery(theme.breakpoints.up("lg"))
-  const isXtraLargeScreen = useMediaQuery(theme.breakpoints.up("xl"))
 
-  const pageSize = useCallback(() => {
-    if (isXtraLargeScreen) return 5
-    if (isLargeScreen) return 4
-    if (ismdScreen) return 3
-    if (isSmScreen) return 2
-    return 1
-  }, [isLargeScreen, isSmScreen, isXtraLargeScreen, ismdScreen])
-
-  const pageItems = useMemo(
-    () =>
-      episodes.slice(
-        currentPage * pageSize(),
-        currentPage * pageSize() + pageSize(),
-      ),
-    [currentPage, episodes, pageSize],
-  )
-
-  const handleClickPrev = () => {
-    if (currentPage === 0) return
-
-    setCurrentPage((prev) => prev - 1)
+  if (episodes.length === 0) {
+    return (
+      <Typography color="text.secondary" sx={{ p: 2 }}>
+        No episodes available.
+      </Typography>
+    )
   }
-  const handleClickNext = () => {
-    const lastElementIndex = currentPage * pageSize() + pageSize()
-
-    if (lastElementIndex >= episodes.length - 1) return
-
-    setCurrentPage((prev) => prev + 1)
-  }
-
-  const hasNext = currentPage * pageSize() + pageSize() < episodes.length - 1
-
-  const hasPrev = currentPage > 0
-
-  console.log(episodes)
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexGrow: 1,
-        flexWrap: "nowrap",
-        height: "90%",
-        marginBottom: 5,
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
+        gap: 1.5,
+        p: 1,
       }}
     >
-      <IconButton
-        size="small"
-        onClick={handleClickPrev}
-        sx={{
-          my: 5,
-          mx: 0,
-          display: "inline-flex",
-          width: "auto",
-          flexGrow: 0,
-        }}
-        disabled={!hasPrev}
-      >
-        <ArrowBackIcon />
-      </IconButton>
-      <Box
-        sx={{
-          display: "grid",
-          gridTemplateColumns: {
-            xl: "1fr 1fr 1fr 1fr 1fr",
-            lg: "1fr 1fr 1fr 1fr",
-            md: "1fr 1fr 1fr",
-            sm: "minmax(100px, 1fr) minmax(100px, 1fr)",
-            xs: "minmax(100px, 1fr)",
-          },
-          gridTemplateRows: "1fr",
-          flexGrow: 1,
-          columnGap: 5,
-          rowGap: 5,
-          flexWrap: "nowrap",
-          width: "100%",
-        }}
-      >
-        {pageItems.map((item) => (
+      {episodes.map((item) => {
+        const active = activeEpisode?.id === item.id
+        return (
           <Card
+            key={item.id ?? item.episode_num}
             sx={{
-              m: 1,
-              flexGrow: 1,
-              outline: activeEpisode === item ? "#fff solid 2px" : "none",
+              borderRadius: 2,
+              bgcolor: active ? "rgba(0,212,255,0.10)" : "background.paper",
+              border: "1px solid",
+              borderColor: active ? "rgba(0,212,255,0.5)" : "divider",
+              transition: "transform 0.15s ease, border-color 0.15s ease",
+              "&:hover": {
+                transform: "translateY(-2px)",
+                borderColor: "rgba(0,212,255,0.35)",
+              },
             }}
-            key={item.episode_num}
           >
-            <CardActionArea onClick={() => onEpisodeClick(item)}>
-              <CardContent>
-                <div>
-                  <Typography
-                    variant="subtitle1"
-                    noWrap
-                  >
-                    {item.title}
+            <CardActionArea onClick={() => onEpisodeClick(item)} sx={{ p: 1.5 }}>
+              <CardContent sx={{ p: 0, "&:last-child": { pb: 0 } }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  {active && (
+                    <PlayArrowRoundedIcon fontSize="small" color="primary" />
+                  )}
+                  <Typography variant="subtitle2" noWrap sx={{ flex: 1, minWidth: 0, fontWeight: 600 }}>
+                    {item.title ?? `Episode ${item.episode_num}`}
                   </Typography>
-                </div>
-                <div
-                  style={{
-                    height: "100%",
-                    justifyContent: "flex-end",
-                    alignContent: "flex-end",
-                    display: "flex",
-                  }}
+                </Box>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ display: "block", mt: 0.5, fontVariantNumeric: "tabular-nums" }}
                 >
+                  S{item.season}:E{item.episode_num}
+                  {item.info?.duration ? `  •  ${item.info.duration}` : ""}
+                </Typography>
+                {item.info?.plot && (
                   <Typography
                     variant="body2"
                     color="text.secondary"
-                    sx={{ justifySelf: "flex-end", alignSelf: "flex-end", display: "flex" }}
+                    sx={{
+                      mt: 0.5,
+                      display: "-webkit-box",
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: "vertical",
+                      overflow: "hidden",
+                    }}
                   >
-                    S{item.season}:E{item.episode_num}
+                    {item.info.plot}
                   </Typography>
-                </div>
+                )}
               </CardContent>
             </CardActionArea>
           </Card>
-        ))}
-      </Box>
-      <IconButton
-        size="small"
-        onClick={handleClickNext}
-        sx={{ my: 5, display: "inline-flex" }}
-        disabled={!hasNext}
-      >
-        <ArrowForwardIcon />
-      </IconButton>
-    </div>
+        )
+      })}
+    </Box>
   )
-}
+})
+EpisodesCarousel.displayName = "EpisodesCarousel"

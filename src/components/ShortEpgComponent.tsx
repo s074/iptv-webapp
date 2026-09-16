@@ -9,9 +9,10 @@ interface ShortEpgProps {
     limit?: number,
     onStreamClick: (stream: LiveStream) => void,
     selected?: boolean
+    hideChannelInfo?: boolean
 }
 export const ShortEpgComponent: FC<ShortEpgProps> = (props) => {
-    const { stream, limit, onStreamClick, selected } = props
+    const { stream, limit, onStreamClick, selected, hideChannelInfo = false } = props
     const dispatch = useAppDispatch()
     const [epg, setEpg] = useState<LiveStreamEPG | undefined>(undefined)
     
@@ -29,6 +30,6 @@ export const ShortEpgComponent: FC<ShortEpgProps> = (props) => {
       }, [stream, dispatch])
 
     return (
-        <ChannelEpgComponent epg={epg} offset={0} stream={stream} onStreamClick={(stream) => onStreamClick(stream) } selected={selected } />
+        <ChannelEpgComponent epg={epg} offset={0} stream={stream} onStreamClick={(stream) => onStreamClick(stream) } selected={selected } hideChannelInfo={hideChannelInfo} />
     )
 }

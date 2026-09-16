@@ -9,7 +9,6 @@ import { useAppDispatch, useAppSelector } from "../store/hooks"
 import { Loading } from "./layout/Loading"
 import Box from "@mui/material/Box"
 import Button from "@mui/material/Button"
-import ButtonGroup from "@mui/material/ButtonGroup"
 import Grid from "@mui/material/Grid"
 import Menu from "@mui/material/Menu"
 import MenuItem from "@mui/material/MenuItem"
@@ -118,22 +117,27 @@ export const SeriesInfoComponent: FC<SeriesInfoProps> = (props) => {
   return (
     <Grid
       container
-      spacing={1}
+      spacing={2}
       sx={{
         flexGrow: 1,
         justifyContent: "center",
-        marginTop: 5,
+        marginTop: 1,
       }}
     >
-      <Grid size={{ xs: 12, md: 5 }} sx={{ justifyContent: "center", alignContent: "center" }}>
+      <Grid size={{ xs: 12, md: 4 }} sx={{ display: "flex", justifyContent: "center", alignItems: "flex-start" }}>
         <Box
           component="img"
           src={series.cover}
           alt=""
-          sx={{ width: "100%", objectFit: "contain" }}
+          sx={{
+            width: "100%",
+            maxWidth: { xs: 200, md: 260 },
+            objectFit: "contain",
+            borderRadius: 2,
+          }}
         />
       </Grid>
-      <Grid size={{ xs: 12, md: 7 }}>
+      <Grid size={{ xs: 12, md: 8 }} sx={{ minWidth: 0 }}>
         {state === "ready" && (
           <div style={{ justifyContent: "center" }}>
             <Typography variant="body1" sx={{ mb: 1 }}>
@@ -154,8 +158,9 @@ export const SeriesInfoComponent: FC<SeriesInfoProps> = (props) => {
             <Typography>
               <b>Cast:</b> {info?.info?.cast}
             </Typography>
-            <ButtonGroup sx={{ margin: 5 }} variant="contained">
+            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 2 }}>
               <Button
+                variant="contained"
                 color="inherit"
                 endIcon={<ArrowDropDown />}
                 onClick={(e) => setSeasonAnchor(e.currentTarget)}
@@ -182,7 +187,7 @@ export const SeriesInfoComponent: FC<SeriesInfoProps> = (props) => {
                   </MenuItem>
                 ))}
               </Menu>
-              <Button color="primary" onClick={toggleWatchlist}>
+              <Button variant="contained" color="primary" onClick={toggleWatchlist}>
                 {watchlist.find(
                   (element) =>
                     element.id === series.series_id &&
@@ -194,13 +199,14 @@ export const SeriesInfoComponent: FC<SeriesInfoProps> = (props) => {
               {playButton !== undefined && playButton}
               {selectedEpisode && (
                 <Button
+                  variant="contained"
                   color="inherit"
                   onClick={() => onClickCopy()}
                 >
                   {`Copy S${selectedSeason?.season_number}E${selectedEpisode?.episode_num} Video Url`}
                 </Button>
               )}
-            </ButtonGroup>
+            </Box>
           </div>
         )}
       </Grid>
