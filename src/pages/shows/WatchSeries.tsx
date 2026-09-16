@@ -47,6 +47,7 @@ export const WatchSeries: FC = () => {
       controls: true,
       responsive: true,
       fluid: true,
+      playsinline: true,
       sources: [
         {
           src: url,

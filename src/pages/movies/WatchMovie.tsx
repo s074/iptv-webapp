@@ -38,6 +38,7 @@ export const WatchMovie: FC = () => {
     responsive: true,
     fluid: true,
     fill: true,
+    playsinline: true,
     sources: [
       {
         src: url,
