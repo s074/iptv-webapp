@@ -46,6 +46,47 @@ function buildTheme(mode: PaletteMode): Theme {
           },
         },
       },
+      MuiButton: {
+        styleOverrides: {
+          root: {
+            textTransform: "none",
+            fontWeight: 500,
+            borderRadius: 8,
+          },
+          outlined: {
+            borderColor:
+              mode === "dark"
+                ? "rgba(255, 255, 255, 0.16)"
+                : "rgba(0, 0, 0, 0.2)",
+            "&:hover": {
+              backgroundColor:
+                mode === "dark"
+                  ? "rgba(255, 255, 255, 0.06)"
+                  : "rgba(0, 0, 0, 0.04)",
+              borderColor:
+                mode === "dark"
+                  ? "rgba(255, 255, 255, 0.28)"
+                  : "rgba(0, 0, 0, 0.32)",
+            },
+          },
+          contained: {
+            boxShadow: "none",
+            "&:hover": {
+              boxShadow:
+                mode === "dark"
+                  ? "0 2px 10px rgba(0, 0, 0, 0.45)"
+                  : "0 2px 8px rgba(0, 0, 0, 0.18)",
+            },
+          },
+        },
+      },
+      MuiIconButton: {
+        styleOverrides: {
+          root: {
+            borderRadius: 8,
+          },
+        },
+      },
     },
   })
 }
