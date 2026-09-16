@@ -207,6 +207,7 @@ export const LiveTV: FC = () => {
         display: "flex",
         flexDirection: "column",
         gap: 1.5,
+        overflow: "hidden",
       }}
     >
       {selectedStream && (
@@ -246,7 +247,16 @@ export const LiveTV: FC = () => {
               {selectedStream.name}
             </Typography>
           </Box>
-          <Box sx={{ maxWidth: 960, mx: "auto", p: { xs: 1, sm: 2 } }}>
+          {/* Video size is capped relative to the viewport so the channel
+              list below always keeps room on the page — only the list scrolls. */}
+          <Box
+            sx={{
+              width: "min(100%, calc(40dvh * 16 / 9))",
+              maxWidth: 960,
+              mx: "auto",
+              p: { xs: 1, sm: 2 },
+            }}
+          >
             <VideoPlayer options={videoJsOptions()} onReady={handlePlayerReady} />
           </Box>
         </Paper>
@@ -307,7 +317,7 @@ export const LiveTV: FC = () => {
         />
       </Paper>
 
-      {/* Guide body — full-width channel list */}
+      {/* Guide body — takes remaining page height; only this list scrolls. */}
       <Box
         sx={{
           flex: 1,

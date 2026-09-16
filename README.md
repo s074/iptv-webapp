@@ -8,7 +8,7 @@ A modern [React](https://react.dev/) webapp that faciliates interacting with any
 
 - Use redux + local storage to minimize API calls
 - Play browser-compatible media in the browser
-- Easy to use interface for searching, browsing, and viewing media
+- Easy to use interface for searching, browsing, and viewing media on all screen sizes
 - Compatible with any Xtream Codes API backend
 - No additional proxy server needed, all application logic runs entirely on the browser and interacts directly with Xtream Codes API
 
