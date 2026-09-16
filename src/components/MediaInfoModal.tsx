@@ -15,6 +15,7 @@ import useMediaQuery from "@mui/material/useMediaQuery"
 import { useTheme } from "@mui/material/styles"
 import CloseIcon from "@mui/icons-material/Close"
 import { glassDialogSlotProps } from "./glassDialog"
+import { thinScrollbarSx } from "./scrollbar"
 import { VodInfoComponent } from "./VodInfoComponent"
 import { isLive, isSeries, isVod } from "../services/utils"
 import { SeriesInfoComponent } from "./SeriesInfoComponent"
@@ -76,7 +77,7 @@ export const MediaInfoModal: FC<MediaInfoModalProps> = (props) => {
           <CloseIcon />
         </IconButton>
       </DialogTitle>
-      <DialogContent dividers sx={{ minWidth: 0 }}>
+      <DialogContent dividers sx={{ minWidth: 0, ...thinScrollbarSx }}>
         <Box sx={{ minWidth: 0, overflowX: "hidden" }}>
           {isVod(stream) && (
             <VodInfoComponent
