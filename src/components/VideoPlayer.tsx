@@ -1,6 +1,7 @@
-import { FC, useEffect, useRef } from "react"
+import { FC, useEffect, useRef, useState } from "react"
 import videojs from "video.js"
 import Player from "video.js/dist/types/player"
+import Snackbar from "@mui/material/Snackbar"
 import "video.js/dist/video-js.css"
 
 export interface VideoPlayerProps {
@@ -14,6 +15,11 @@ export interface VideoPlayerProps {
 // <video> element, so video.js's built-in toggle stays disabled on
 // iPhones. This button covers that path (and only that path — where
 // the standard API exists, the built-in toggle keeps working).
+//
+// Note: home-screen web apps run in a restricted web view, not full
+// Safari, and Apple may withhold the WebKit PiP API there too. The
+// button therefore falls back to native fullscreen (whose system UI
+// can offer PiP) and finally to an explanatory message.
 interface WebkitPresentationVideo extends HTMLVideoElement {
   webkitSetPresentationMode?: (
     mode: "inline" | "picture-in-picture" | "fullscreen",
@@ -22,6 +28,41 @@ interface WebkitPresentationVideo extends HTMLVideoElement {
   webkitPresentationMode?: string
   webkitDisplayingFullscreen?: boolean
   webkitExitFullscreen?: () => void
+  webkitEnterFullscreen?: () => void
+}
+
+export interface PiPSupportInfo {
+  standalone: boolean
+  standard: boolean
+  webkitFn: boolean
+  webkitSupported: boolean | null
+  presentationMode: string | null
+  playsinline: boolean | null
+}
+
+export function getPiPSupport(player: Player): PiPSupportInfo {
+  const doc = document as Document & { pictureInPictureEnabled?: boolean }
+  const el = getTechVideoEl(player)
+  let webkitSupported: boolean | null = null
+  try {
+    const result = el?.webkitSupportsPresentationMode?.("picture-in-picture")
+    if (typeof result === "boolean") webkitSupported = result
+  } catch {
+    webkitSupported = null
+  }
+  const nav = navigator as Navigator & { standalone?: boolean }
+  const standalone =
+    nav.standalone === true ||
+    (typeof window.matchMedia === "function" &&
+      window.matchMedia("(display-mode: standalone)").matches)
+  return {
+    standalone,
+    standard: doc.pictureInPictureEnabled === true,
+    webkitFn: typeof el?.webkitSetPresentationMode === "function",
+    webkitSupported,
+    presentationMode: el?.webkitPresentationMode ?? null,
+    playsinline: el ? el.hasAttribute("playsinline") : null,
+  }
 }
 
 function getTechVideoEl(player: Player): WebkitPresentationVideo | null {
@@ -36,22 +77,71 @@ function getTechVideoEl(player: Player): WebkitPresentationVideo | null {
   }
 }
 
-function canUseIosPiP(player: Player): boolean {
+// True when the page must handle PiP itself: the standard API is missing
+// (iOS Safari and home-screen web apps). The button is added in both
+// cases — where even the WebKit API is missing, a tap explains why and
+// offers native fullscreen instead of silently doing nothing.
+function shouldAddIosPiPButton(player: Player): boolean {
   if (typeof document !== "undefined") {
     const doc = document as Document & { pictureInPictureEnabled?: boolean }
     // Standard API present (desktop/Android) — the built-in toggle handles it.
     if (doc.pictureInPictureEnabled) return false
   }
-  const el = getTechVideoEl(player)
-  if (!el || typeof el.webkitSetPresentationMode !== "function") return false
-  if (typeof el.webkitSupportsPresentationMode === "function") {
-    try {
-      return el.webkitSupportsPresentationMode("picture-in-picture")
-    } catch {
+  return getTechVideoEl(player) !== null
+}
+
+// Returns true when a WebKit PiP attempt was made.
+function tryWebkitPiP(el: WebkitPresentationVideo): boolean {
+  if (typeof el.webkitSetPresentationMode !== "function") return false
+  try {
+    if (
+      typeof el.webkitSupportsPresentationMode === "function" &&
+      !el.webkitSupportsPresentationMode("picture-in-picture")
+    ) {
       return false
     }
+  } catch {
+    return false
   }
-  return true
+  try {
+    if (el.webkitPresentationMode === "picture-in-picture") {
+      el.webkitSetPresentationMode("inline")
+      return true
+    }
+    if (el.webkitDisplayingFullscreen && el.webkitExitFullscreen) {
+      // iOS refuses PiP straight from native fullscreen — step out first.
+      el.webkitExitFullscreen()
+      window.setTimeout(() => {
+        try {
+          el.webkitSetPresentationMode?.("picture-in-picture")
+        } catch {
+          // ignore — likely tapped before metadata loaded
+        }
+      }, 350)
+      return true
+    }
+    el.webkitSetPresentationMode("picture-in-picture")
+    return true
+  } catch {
+    return false
+  }
+}
+
+// Returns true when native fullscreen was entered as a PiP fallback.
+function tryFullscreenFallback(el: WebkitPresentationVideo): boolean {
+  try {
+    if (typeof el.webkitEnterFullscreen === "function") {
+      el.webkitEnterFullscreen()
+      return true
+    }
+    if (typeof el.requestFullscreen === "function") {
+      void el.requestFullscreen().catch(() => {})
+      return true
+    }
+  } catch {
+    // ignore — fall through to the explanatory message
+  }
+  return false
 }
 
 let iosPiPRegistered = false
@@ -79,28 +169,13 @@ function ensureIosPiPButton(player: Player) {
       }
       handleClick() {
         const el = getTechVideoEl(this.player())
-        if (!el?.webkitSetPresentationMode) return
-        try {
-          if (el.webkitPresentationMode === "picture-in-picture") {
-            el.webkitSetPresentationMode("inline")
-            return
-          }
-          if (el.webkitDisplayingFullscreen && el.webkitExitFullscreen) {
-            // iOS refuses PiP straight from native fullscreen — step out first.
-            el.webkitExitFullscreen()
-            window.setTimeout(() => {
-              try {
-                el.webkitSetPresentationMode?.("picture-in-picture")
-              } catch {
-                // ignore — likely tapped before metadata loaded
-              }
-            }, 350)
-            return
-          }
-          el.webkitSetPresentationMode("picture-in-picture")
-        } catch {
-          // ignore — iOS throws if tapped before metadata loads
-        }
+        if (el && tryWebkitPiP(el)) return
+        if (el && tryFullscreenFallback(el)) return
+        window.dispatchEvent(
+          new CustomEvent<PiPSupportInfo>("app:pip-unavailable", {
+            detail: getPiPSupport(this.player()),
+          }),
+        )
       }
     }
     videojs.registerComponent(
@@ -110,7 +185,7 @@ function ensureIosPiPButton(player: Player) {
     iosPiPRegistered = true
   }
 
-  if (!canUseIosPiP(player)) return
+  if (!shouldAddIosPiPButton(player)) return
   const controlBar = player.getChild("controlBar") as any
   if (!controlBar || controlBar.getChild("IosPictureInPictureButton")) return
   // Insert just before the fullscreen toggle (last child).
@@ -122,6 +197,18 @@ export const VideoPlayer: FC<VideoPlayerProps> = (props) => {
   const { options, onReady } = props
   const videoRef = useRef<HTMLDivElement | null>(null)
   const playerRef = useRef<Player | null>(null)
+  const [pipUnavailable, setPipUnavailable] = useState(false)
+
+  useEffect(() => {
+    const onPipUnavailable = (event: Event) => {
+      const detail = (event as CustomEvent<PiPSupportInfo>).detail
+      // Aids remote diagnosis: open desktop Safari → Develop → [device] → Console.
+      console.debug("[pip] unavailable", detail)
+      setPipUnavailable(true)
+    }
+    window.addEventListener("app:pip-unavailable", onPipUnavailable)
+    return () => window.removeEventListener("app:pip-unavailable", onPipUnavailable)
+  }, [])
 
   useEffect(() => {
     // Make sure Video.js player is only initialized once
@@ -136,6 +223,7 @@ export const VideoPlayer: FC<VideoPlayerProps> = (props) => {
 
       const player = (playerRef.current = videojs(videoElement, options, () => {
         videojs.log("player is ready")
+        console.debug("[pip] support", getPiPSupport(player))
         ensureIosPiPButton(player)
         onReady && onReady(player)
       }))
@@ -174,6 +262,12 @@ export const VideoPlayer: FC<VideoPlayerProps> = (props) => {
   return (
     <div data-vjs-player>
       <div ref={videoRef} />
+      <Snackbar
+        open={pipUnavailable}
+        autoHideDuration={7000}
+        onClose={() => setPipUnavailable(false)}
+        message="Picture-in-Picture isn't available in the home-screen app — open this page in Safari for PiP, or use fullscreen."
+      />
     </div>
   )
 }
