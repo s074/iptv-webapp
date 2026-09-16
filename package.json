@@ -21,21 +21,22 @@
     "@mui/material": "^9.4.0",
     "@reduxjs/toolkit": "^2.10.1",
     "idb-keyval": "^6.2.1",
-    "query-string": "^8.1.0",
+    "query-string": "^9.5.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-redux": "^9.2.0",
-    "react-router-dom": "^6.15.0",
+    "react-router-dom": "^7.18.4",
     "react-virtuoso": "^4.18.13",
     "video.js": "^8.23.4"
   },
   "devDependencies": {
+    "@babel/core": "^7.29.7",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^14.3.1",
     "@testing-library/user-event": "^14.6.1",
     "@types/react": "^18.3.26",
     "@types/react-dom": "^18.3.7",
-    "@vitejs/plugin-react": "^4.7.0",
+    "@vitejs/plugin-react": "^6.1.1",
     "eslint": "^8.57.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-config-react-app": "^7.0.1",
@@ -43,8 +44,8 @@
     "jsdom": "^23.2.0",
     "prettier": "^3.6.2",
     "typescript": "^5.9.3",
-    "vite": "^7.3.1",
-    "vitest": "^1.6.1"
+    "vite": "^8.3.0",
+    "vitest": "^5.0.1"
   },
   "eslintConfig": {
     "extends": [
