@@ -1,4 +1,9 @@
-import { Card, CardContent, CardCover, Link, Typography } from "@mui/joy"
+import Card from "@mui/material/Card"
+import CardActionArea from "@mui/material/CardActionArea"
+import CardContent from "@mui/material/CardContent"
+import CardMedia from "@mui/material/CardMedia"
+import Box from "@mui/material/Box"
+import Typography from "@mui/material/Typography"
 import { FC } from "react"
 import { LiveStream } from "../services/XtremeCodesAPI.types"
 
@@ -11,53 +16,47 @@ export interface ChannelCardProps {
 export const ChannelCard: FC<ChannelCardProps> = (props) => {
   const { stream, selected = false, onStreamClick } = props
 
-  //todo: add selected styling
   return (
     <Card
       sx={{
-        margin: 1,
+        m: 1,
         flexGrow: 1,
         minWidth: 150,
         maxWidth: 280,
         height: "100%",
+        position: "relative",
         border: selected ? "1px solid" : "1px solid transparent",
-        borderColor: selected ? "primary.300" : "transparent",
-        outline: selected ? "#fff solid 2px" : "transparent",
+        borderColor: selected ? "primary.light" : "transparent",
+        outline: selected ? "#fff solid 2px" : "none",
         "&:hover": {
-          boxShadow: "md",
+          boxShadow: 6,
           outline: "#fff solid 2px",
-          backgroundColor:
-            "var(--joy-palette-neutral-outlinedHoverBg, var(--joy-palette-neutral-100, #EAEEF6))",
         },
       }}
     >
-      <CardCover>
-        <img
-          src={stream.stream_icon}
-          loading="lazy"
+      <CardActionArea onClick={() => onStreamClick(stream)} sx={{ height: "100%" }}>
+        <CardMedia
+          component="img"
+          image={stream.stream_icon}
           alt=""
-          style={{ objectFit: "none" }}
+          loading="lazy"
+          sx={{ objectFit: "contain", aspectRatio: "16/9" }}
         />
-      </CardCover>
-      <CardCover
-        sx={{
-          background:
-            "linear-gradient(to top, rgba(0,0,0,0.4), rgba(0,0,0,0) 200px), linear-gradient(to top, rgba(0,0,0,0.6), rgba(0,0,0,0) 300px)",
-        }}
-      />
-      <CardContent sx={{ justifyContent: "flex-end" }}>
-        <Typography level="body-sm" textColor="#fff" noWrap>
-          <Link
-            overlay
-            underline="none"
-            textColor="inherit"
-            textOverflow="ellipsis"
-            onClick={() => onStreamClick(stream)}
-          >
+        <Box
+          sx={{
+            position: "absolute",
+            inset: 0,
+            pointerEvents: "none",
+            background:
+              "linear-gradient(to top, rgba(0,0,0,0.4), rgba(0,0,0,0) 200px), linear-gradient(to top, rgba(0,0,0,0.6), rgba(0,0,0,0) 300px)",
+          }}
+        />
+        <CardContent sx={{ position: "absolute", bottom: 0, left: 0, right: 0 }}>
+          <Typography variant="body2" color="#fff" noWrap>
             {stream.name}
-          </Link>
-        </Typography>
-      </CardContent>
+          </Typography>
+        </CardContent>
+      </CardActionArea>
     </Card>
   )
 }

@@ -1,12 +1,9 @@
-import {
-  Alert,
-  Button,
-  FormControl,
-  FormLabel,
-  Input,
-  Sheet,
-  Typography,
-} from "@mui/joy"
+import Alert from "@mui/material/Alert"
+import Box from "@mui/material/Box"
+import Button from "@mui/material/Button"
+import Paper from "@mui/material/Paper"
+import TextField from "@mui/material/TextField"
+import Typography from "@mui/material/Typography"
 import { useState } from "react"
 import { useAppDispatch } from "../../store/hooks"
 import { setApiConfig, setAppStatus } from "../../store/app/appSlice"
@@ -92,77 +89,76 @@ export const Login: React.FC = () => {
   }
 
   return (
-    <main>
-      <Sheet
+    <Box component="main">
+      <Paper
+        elevation={3}
         sx={{
           width: 300,
-          mx: "auto", // margin left & right
-          my: 4, // margin top & bottom
-          py: 3, // padding top & bottom
-          px: 2, // padding left & right
+          mx: "auto",
+          my: 4,
+          py: 3,
+          px: 2,
           display: "flex",
           flexDirection: "column",
           gap: 2,
-          borderRadius: "sm",
-          boxShadow: "md",
-          bgcolor: "background.appBody",
+          borderRadius: 2,
         }}
         variant="outlined"
       >
         <div>
-          <Typography level="h4" component="h1">
+          <Typography variant="h5" component="h1">
             <b>Welcome!</b>
           </Typography>
-          <Typography level="body-sm">Sign in to continue.</Typography>
+          <Typography variant="body2" color="text.secondary">Sign in to continue.</Typography>
         </div>
         {error && error.length > 0 && (
-          <Alert color="danger" variant="solid">
+          <Alert severity="error" variant="filled">
             {error}
           </Alert>
         )}
-        <FormControl>
-          <FormLabel>Url</FormLabel>
-          <Input
-            name="url"
-            type="input"
-            placeholder="http://my-url:port"
-            value={baseUrl}
-            onChange={(e) => setBaseUrl(e.target.value)}
-          />
-        </FormControl>
-        <FormControl>
-          <FormLabel>Username</FormLabel>
-          <Input
-            name="username"
-            type="username"
-            placeholder="username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-          />
-        </FormControl>
-        <FormControl>
-          <FormLabel>Password</FormLabel>
-          <Input
-            name="password"
-            type="password"
-            placeholder="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </FormControl>
+        <TextField
+          label="Url"
+          name="url"
+          type="text"
+          placeholder="http://my-url:port"
+          value={baseUrl}
+          onChange={(e) => setBaseUrl(e.target.value)}
+          fullWidth
+          size="small"
+        />
+        <TextField
+          label="Username"
+          name="username"
+          placeholder="username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          fullWidth
+          size="small"
+        />
+        <TextField
+          label="Password"
+          name="password"
+          type="password"
+          placeholder="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          fullWidth
+          size="small"
+        />
 
         <Button
           sx={{ mt: 1 }}
-          loading={status !== "idle"}
-          loadingPosition="start"
           onClick={handleSubmit}
           disabled={!canSubmit}
+          loading={status !== "idle"}
+          loadingPosition="start"
+          variant="contained"
         >
           {status === "idle" && <>Log in</>}
           {status === "pending" && <>Submitting</>}
           {status === "loading" && <>Performing initial load</>}
         </Button>
-      </Sheet>
-    </main>
+      </Paper>
+    </Box>
   )
 }

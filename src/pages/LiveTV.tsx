@@ -1,17 +1,15 @@
 import { FC, useCallback, useEffect, useRef, useState } from "react"
 import { useAppSelector } from "../store/hooks"
 import { selectLiveCategories, selectLiveStreams } from "../store/live/liveSlice"
-import {
-  Box,
-  Container,
-  Grid,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemContent,
-  IconButton,
-  Typography,
-} from "@mui/joy"
+import Box from "@mui/material/Box"
+import Container from "@mui/material/Container"
+import Grid from "@mui/material/Grid"
+import List from "@mui/material/List"
+import ListItem from "@mui/material/ListItem"
+import ListItemButton from "@mui/material/ListItemButton"
+import ListItemText from "@mui/material/ListItemText"
+import IconButton from "@mui/material/IconButton"
+import Typography from "@mui/material/Typography"
 import { Category, LiveStream } from "../services/XtremeCodesAPI.types"
 import { KeyboardArrowRight, KeyboardArrowDown, Menu } from "@mui/icons-material"
 import { containerToMimeType } from "../services/utils"
@@ -57,17 +55,12 @@ export const LiveTV: FC = () => {
         )
         if (category) setSelectedCategory(category)
         else setSelectedCategory(firstCategory)
+
+        return;
       }
-      return
     }
 
     setSelectedCategory(firstCategory)
-
-    setSelectedStream(
-      liveStreams
-        .filter((stream) => stream.category_id === firstCategory?.category_id)
-        .find((item) => item !== undefined),
-    )
   }, [channelId, liveStreamCategories, liveStreams])
 
   const onStreamClick = (stream: LiveStream) => {
@@ -121,23 +114,20 @@ export const LiveTV: FC = () => {
   return (
     <Box
       sx={{
-        maxHeight: "100vh",
-        maxWidth: "100vw",
+        maxHeight: "100%",
         height: "100%",
         width: "100%",
       }}
     >
-      <Container maxWidth="lg">
+      {selectedStream && <Container maxWidth="lg">
         <VideoPlayer options={videoJsOptions()} onReady={handlePlayerReady} />
-      </Container>
-      <Container maxWidth="xl" sx={{ mt: 2 }}>
+      </Container>}
+      <Container sx={{ mt: 2, maxWidth: "100% !important", maxHeight: "100% !important" }}>
         <Grid container spacing={2} sx={{
-          height: "600px", 
-        }}
-        xs={12}>
+          height: selectedStream ? "600px" : "100%",
+        }}>
           <Grid
-            xs={12}
-            md={2}
+            size={{ xs: 12, md: 2 }}
             sx={{
               height: { xs: "auto", md: "100%" },
               maxHeight: { xs: categoriesCollapsed ? "48px" : "310px", md: "100%" },
@@ -163,11 +153,11 @@ export const LiveTV: FC = () => {
             >
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                 <Menu />
-                <Typography level="title-sm">
+                <Typography variant="subtitle2">
                   {selectedCategory?.category_name || "Categories"}
                 </Typography>
               </Box>
-              <IconButton size="sm" variant="plain">
+              <IconButton size="small">
                 <KeyboardArrowDown
                   sx={{
                     transform: categoriesCollapsed ? "rotate(0deg)" : "rotate(180deg)",
@@ -181,20 +171,19 @@ export const LiveTV: FC = () => {
               sx={{
                 display: { xs: categoriesCollapsed ? "none" : "block", md: "block" },
                 height: { md: "100%" },
-                maxHeight: { xs: "250px", md: "100%" },
+                maxHeight: { xs: "250px", md: "700px" },
                 overflow: "auto",
               }}
             >
               <List
-                variant="outlined"
-                orientation="vertical"
                 sx={{
-                  borderRadius: "sm",
-                  "--ListItem-paddingY": "1rem",
+                  border: "1px solid",
+                  borderColor: "divider",
+                  borderRadius: 1,
                 }}
               >
                 {liveStreamCategories.map((category) => (
-                  <ListItem key={category.category_id}>
+                  <ListItem key={category.category_id} disablePadding>
                     <ListItemButton
                       onClick={() => {
                         setSelectedCategory(category)
@@ -202,7 +191,7 @@ export const LiveTV: FC = () => {
                       }}
                       selected={selectedCategory === category}
                     >
-                      <ListItemContent>{category.category_name}</ListItemContent>
+                      <ListItemText primary={category.category_name} />
                       <KeyboardArrowRight />
                     </ListItemButton>
                   </ListItem>
@@ -210,34 +199,23 @@ export const LiveTV: FC = () => {
               </List>
             </Box>
           </Grid>
-          <Grid xs={12} md={10} sx={{ height: "100%", overflow: "auto" }}>
+          <Grid size={{ xs: 12, md: 10 }} sx={{ height: "100%", overflow: "auto" }}>
             <List
-              variant="outlined"
-              orientation="vertical"
-              sx={{ borderRadius: "sm" }}
+              sx={{ border: "1px solid", borderColor: "divider", borderRadius: 1 }}
             >
               {categoryLiveStreams().map((liveStream) => (
-                <ListItem key={liveStream.stream_id}>
-                  <ListItemContent sx={{
+                <ListItem key={liveStream.stream_id} disablePadding>
+                  <Box sx={{
+                    width: "100%",
                     backgroundColor: selectedStream === liveStream
-          ? "var(--variant-plainActiveBg, var(--joy-palette-neutral-plainActiveBg, var(--joy-palette-neutral-200, #DDE7EE)))"
-          : "rgba(var(--joy-palette-neutral-mainChannel) / 0.05)",
+                      ? "action.selected"
+                      : "transparent",
                   }}>
-                    <Grid
-                      container
-                      sx={{
-                        border: 0,
-                        gap: 0,
-                      }}
-                    >
-                      <Grid sm={12}>
-                        <ShortEpgComponent
-                          stream={liveStream}
-                          onStreamClick={onStreamClick}
-                        />
-                      </Grid>
-                    </Grid>
-                  </ListItemContent>
+                    <ShortEpgComponent
+                      stream={liveStream}
+                      onStreamClick={onStreamClick}
+                    />
+                  </Box>
                 </ListItem>
               ))}
             </List>

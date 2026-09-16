@@ -1,6 +1,8 @@
 import { FC } from "react"
 import { LiveStream } from "../services/XtremeCodesAPI.types"
-import { Button, ButtonGroup, Grid } from "@mui/joy"
+import Button from "@mui/material/Button"
+import ButtonGroup from "@mui/material/ButtonGroup"
+import Grid from "@mui/material/Grid"
 import { addToFavorites, removeFromFavorites, selectFavorites } from "../store/live/liveSlice"
 import { useAppDispatch, useAppSelector } from "../store/hooks"
 import { copyTextToClibpboard } from "../services/utils"
@@ -40,21 +42,20 @@ export const LiveInfoComponent: FC<LiveInfoProps> = (props) => {
     <Grid
       container
       spacing={1}
-      columns={12}
       sx={{
         flexGrow: 1,
         justifyContent: "center",
         marginTop: 5,
       }}
     >
-      <Grid xs={12} sm={12} md={12}>
+      <Grid size={{ xs: 12 }}>
         <div style={{ justifyContent: "center" }}>
           <ShortEpgComponent
             stream={stream}
             onStreamClick={() => {}}
           />
-          <ButtonGroup sx={{ margin: 5 }} spacing="0.5rem">
-            <Button variant="solid" color="primary" onClick={toggleWatchlist}>
+          <ButtonGroup sx={{ margin: 5 }} variant="contained">
+            <Button color="primary" onClick={toggleWatchlist}>
               {favorites.find(
                 (element) =>
                   element.stream_id === stream.stream_id,
@@ -64,8 +65,7 @@ export const LiveInfoComponent: FC<LiveInfoProps> = (props) => {
             </Button>
             {playButton !== undefined && playButton}
             <Button
-              variant="soft"
-              color="neutral"
+              color="inherit"
               onClick={() => onClickCopy()}
             >
               Copy Video Url

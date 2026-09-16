@@ -4,7 +4,10 @@ import {
   LiveStreamEPG,
   LiveStreamEPGItem,
 } from "../services/XtremeCodesAPI.types"
-import { Box, Grid, Typography, Chip } from "@mui/joy"
+import Box from "@mui/material/Box"
+import Grid from "@mui/material/Grid"
+import Typography from "@mui/material/Typography"
+import Chip from "@mui/material/Chip"
 import { ChannelCard } from "./ChannelCard"
 import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded"
 import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded"
@@ -71,19 +74,16 @@ const EpgItem: FC<{ item: LiveStreamEPGItem }> = ({ item }) => {
         p: 1.5,
         position: "relative",
         overflow: "hidden",
-        borderRadius: "sm",
+        borderRadius: 1,
         backgroundColor: isNowPlaying
-          ? "rgba(var(--joy-palette-primary-mainChannel) / 0.15)"
-          : "rgba(var(--joy-palette-neutral-mainChannel) / 0.05)",
+          ? "rgba(25, 118, 210, 0.15)"
+          : "rgba(128, 128, 128, 0.05)",
         border: isNowPlaying ? "1px solid" : "1px solid transparent",
-        borderColor: isNowPlaying ? "primary.300" : "transparent",
+        borderColor: isNowPlaying ? "primary.light" : "transparent",
         transition: "all 0.2s ease-in-out",
         "&:hover": {
-          backgroundColor: isNowPlaying
-            ? "rgba(var(--joy-palette-primary-mainChannel) / 0.25)"
-            : "rgba(var(--joy-palette-neutral-mainChannel) / 0.12)",
           transform: "translateY(-2px)",
-          boxShadow: "sm",
+          boxShadow: 1,
         },
       }}
     >
@@ -96,7 +96,7 @@ const EpgItem: FC<{ item: LiveStreamEPGItem }> = ({ item }) => {
             left: 0,
             height: 3,
             width: `${progress}%`,
-            background: "linear-gradient(90deg, var(--joy-palette-primary-400), var(--joy-palette-primary-500))",
+            background: "linear-gradient(90deg, #42a5f5, #1976d2)",
             borderRadius: "0 2px 0 0",
           }}
         />
@@ -105,10 +105,10 @@ const EpgItem: FC<{ item: LiveStreamEPGItem }> = ({ item }) => {
       {/* Now Playing Badge */}
       {isNowPlaying && (
         <Chip
-          size="sm"
-          variant="solid"
+          size="small"
           color="primary"
-          startDecorator={<PlayArrowRoundedIcon sx={{ fontSize: 14 }} />}
+          icon={<PlayArrowRoundedIcon sx={{ fontSize: 14 }} />}
+          label="LIVE"
           sx={{
             position: "absolute",
             top: 6,
@@ -116,9 +116,7 @@ const EpgItem: FC<{ item: LiveStreamEPGItem }> = ({ item }) => {
             fontSize: "0.65rem",
             height: 20,
           }}
-        >
-          LIVE
-        </Chip>
+        />
       )}
 
       {/* Time */}
@@ -133,13 +131,13 @@ const EpgItem: FC<{ item: LiveStreamEPGItem }> = ({ item }) => {
         <AccessTimeRoundedIcon
           sx={{
             fontSize: 12,
-            color: isNowPlaying ? "primary.400" : "neutral.400",
+            color: isNowPlaying ? "primary.light" : "text.disabled",
           }}
         />
         <Typography
-          level="body-xs"
+          variant="caption"
           sx={{
-            color: isNowPlaying ? "primary.400" : "neutral.400",
+            color: isNowPlaying ? "primary.light" : "text.disabled",
             fontWeight: 500,
           }}
         >
@@ -150,10 +148,9 @@ const EpgItem: FC<{ item: LiveStreamEPGItem }> = ({ item }) => {
 
       {/* Title */}
       <Typography
-        level="body-sm"
+        variant="body2"
         sx={{
           fontWeight: isNowPlaying ? 600 : 500,
-          color: isNowPlaying ? "primary.plainColor" : "text.primary",
           lineHeight: 1.3,
           display: "-webkit-box",
           WebkitLineClamp: 2,
@@ -189,21 +186,14 @@ export const ChannelEpgComponent: FC<ChannelEpgProps> = (props) => {
     <Grid
       container
       sx={{
-        "--Grid-borderWidth": "1px",
-        borderTop: "var(--Grid-borderWidth) solid",
-        borderBottom: "var(--Grid-borderWidth) solid",
+        borderTop: "1px solid",
+        borderBottom: "1px solid",
         borderColor: "divider",
-        "& > div": {
-          borderRight: "var(--Grid-borderWidth) solid",
-          borderColor: "divider",
-        },
         gap: 0,
         minHeight: 100,
-        background:
-          "linear-gradient(135deg, rgba(var(--joy-palette-neutral-mainChannel) / 0.02), rgba(var(--joy-palette-neutral-mainChannel) / 0.06))",
       }}
     >
-      <Grid sm={2} xs={12}>
+      <Grid size={{ xs: 12, sm: 2 }}>
          <Box
           sx={{
             display: "flex",
@@ -219,11 +209,10 @@ export const ChannelEpgComponent: FC<ChannelEpgProps> = (props) => {
           selected={selected}
         /> </Box>
       </Grid>
-      <Grid md={10} sm={12}>
+      <Grid size={{ xs: 12, sm: 12, md: 10 }}>
         <Box
           sx={{
             display: "flex",
-            //alignItems: "stretch",
             gap: 1,
             p: 1,
             overflowX: "auto",
@@ -233,13 +222,6 @@ export const ChannelEpgComponent: FC<ChannelEpgProps> = (props) => {
             },
             "&::-webkit-scrollbar-track": {
               background: "transparent",
-            },
-            "&::-webkit-scrollbar-thumb": {
-              background: "rgba(var(--joy-palette-neutral-mainChannel) / 0.2)",
-              borderRadius: 3,
-            },
-            "&::-webkit-scrollbar-thumb:hover": {
-              background: "rgba(var(--joy-palette-neutral-mainChannel) / 0.3)",
             },
           }}
         >
@@ -254,10 +236,10 @@ export const ChannelEpgComponent: FC<ChannelEpgProps> = (props) => {
                 alignItems: "center",
                 justifyContent: "center",
                 width: "100%",
-                color: "neutral.400",
+                color: "text.disabled",
               }}
             >
-              <Typography level="body-sm" sx={{ fontStyle: "italic" }}>
+              <Typography variant="body2" sx={{ fontStyle: "italic" }}>
                 No program information available
               </Typography>
             </Box>

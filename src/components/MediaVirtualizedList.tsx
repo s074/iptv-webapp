@@ -6,7 +6,7 @@ import {
 } from "../services/XtremeCodesAPI.types"
 import { useVirtualizer } from "@tanstack/react-virtual"
 import { MediaCarousel } from "./MediaCarousel"
-import { Typography } from "@mui/joy"
+import Typography from "@mui/material/Typography"
 
 export interface MediaVirtualizedListProps {
   categories: Category[]
@@ -23,7 +23,6 @@ export const MediaVirtualizedList: FC<MediaVirtualizedListProps> = (props) => {
     getScrollElement: () => parentRef.current,
     estimateSize: () => 350,
     overscan: 5,
-    paddingEnd: 50,
   })
 
   return (
@@ -32,8 +31,6 @@ export const MediaVirtualizedList: FC<MediaVirtualizedListProps> = (props) => {
       style={{
         height: "100%",
         overflow: "auto",
-        marginLeft: -16,
-        marginRight: -16,
       }}
     >
       <div
@@ -57,11 +54,7 @@ export const MediaVirtualizedList: FC<MediaVirtualizedListProps> = (props) => {
                 transform: `translateY(${virtualItem.start}px)`,
               }}
             >
-              <Typography
-                level="title-lg"
-                justifyContent="center"
-                display="flex"
-              >
+              <Typography variant="h6" align="center">
                 {category.category_name}
               </Typography>
               <MediaCarousel

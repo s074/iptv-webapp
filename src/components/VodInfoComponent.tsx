@@ -1,6 +1,10 @@
 import { FC, useEffect, useState } from "react"
 import { VodInfo, VodStream } from "../services/XtremeCodesAPI.types"
-import { AspectRatio, Button, ButtonGroup, Grid, Typography } from "@mui/joy"
+import Box from "@mui/material/Box"
+import Button from "@mui/material/Button"
+import ButtonGroup from "@mui/material/ButtonGroup"
+import Grid from "@mui/material/Grid"
+import Typography from "@mui/material/Typography"
 import { useAppDispatch, useAppSelector } from "../store/hooks"
 import { fetchVodInfoAsync } from "../store/vod/vodSlice"
 import { YoutubeVideo } from "./YoutubeVideo"
@@ -64,32 +68,28 @@ export const VodInfoComponent: FC<VodInfoProps> = (props) => {
     <Grid
       container
       spacing={1}
-      columns={12}
       sx={{
         flexGrow: 1,
         justifyContent: "center",
         marginTop: 5,
       }}
     >
-      <Grid
-        xs={12}
-        sm={12}
-        md={5}
-        justifyContent="center"
-        alignContent="center"
-      >
+      <Grid size={{ xs: 12, md: 5 }} sx={{ justifyContent: "center", alignContent: "center" }}>
         {showTrailer && <YoutubeVideo id={info?.info?.youtube_trailer ?? ""} />}
         {!showTrailer && (
-          <AspectRatio objectFit="contain" variant="plain">
-            <img src={vod.stream_icon} alt={""} />
-          </AspectRatio>
+          <Box
+            component="img"
+            src={vod.stream_icon}
+            alt=""
+            sx={{ width: "100%", objectFit: "contain" }}
+          />
         )}
       </Grid>
-      <Grid xs={12} sm={12} md={7}>
+      <Grid size={{ xs: 12, md: 7 }}>
         <div style={{ justifyContent: "center" }}>
           {state === "ready" && (
             <>
-              <Typography level="body-lg" marginBottom={1}>
+              <Typography variant="body1" sx={{ mb: 1 }}>
                 {info?.info?.plot}
               </Typography>
               <Typography>
@@ -110,20 +110,19 @@ export const VodInfoComponent: FC<VodInfoProps> = (props) => {
             </>
           )}
           {state === "error" && (
-            <Typography level="body-lg" marginBottom={1}>
+            <Typography variant="body1" sx={{ mb: 1 }}>
               There was an error loading information for that title
             </Typography>
           )}
-          <ButtonGroup sx={{ margin: 5 }} spacing="0.5rem">
+          <ButtonGroup sx={{ margin: 5 }} variant="contained">
             <Button
-              variant="solid"
-              color="neutral"
+              color="inherit"
               onClick={() => setTrailerVisible((prev) => !prev)}
               disabled={!info || !info.info?.youtube_trailer}
             >
               Watch Trailer
             </Button>
-            <Button variant="solid" color="primary" onClick={toggleWatchlist}>
+            <Button color="primary" onClick={toggleWatchlist}>
               {watchlist.find(
                 (element) =>
                   element.id === vod.stream_id && element.type === "vod",
@@ -133,8 +132,7 @@ export const VodInfoComponent: FC<VodInfoProps> = (props) => {
             </Button>
             {playButton !== undefined && playButton}
             <Button
-              variant="soft"
-              color="neutral"
+              color="inherit"
               onClick={() => onClickCopy()}
             >
               Copy Video Url

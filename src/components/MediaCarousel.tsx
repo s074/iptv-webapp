@@ -8,7 +8,8 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack"
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward"
 import useMediaQuery from "@mui/material/useMediaQuery"
 import { useTheme } from "@mui/material/styles"
-import { Box, IconButton } from "@mui/joy"
+import Box from "@mui/material/Box"
+import IconButton from "@mui/material/IconButton"
 import { MediaCard } from "./MediaCard"
 import { isLive, isSeries } from "../services/utils"
 import { ChannelCard } from "./ChannelCard"
@@ -73,12 +74,11 @@ export const MediaCarousel: FC<MediaCarouselProps> = (props) => {
       }}
     >
       <IconButton
-        variant="outlined"
-        size="sm"
+        size="small"
         onClick={handleClickPrev}
         sx={{
-          marginY: 5,
-          marginX: 0,
+          my: 5,
+          mx: 0,
           display: "inline-flex",
           width: "auto",
           flexGrow: 0,
@@ -101,7 +101,7 @@ export const MediaCarousel: FC<MediaCarouselProps> = (props) => {
           flexGrow: 1,
           columnGap: 5,
           rowGap: 5,
-          wrap: "nowrap",
+          flexWrap: "nowrap",
           width: "100%",
         }}
       >
@@ -125,10 +125,9 @@ export const MediaCarousel: FC<MediaCarouselProps> = (props) => {
         })}
       </Box>
       <IconButton
-        variant="outlined"
-        size="sm"
+        size="small"
         onClick={handleClickNext}
-        sx={{ marginY: 5, display: "inline-flex" }}
+        sx={{ my: 5, display: "inline-flex" }}
         disabled={!hasNext}
       >
         <ArrowForwardIcon />

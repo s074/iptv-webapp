@@ -2,7 +2,12 @@ import { FC, useCallback, useMemo, useState } from "react"
 import { SeriesEpisode } from "../services/XtremeCodesAPI.types"
 import useMediaQuery from "@mui/material/useMediaQuery"
 import { useTheme } from "@mui/material/styles"
-import { Box, Card, CardContent, IconButton, Link, Typography } from "@mui/joy"
+import Box from "@mui/material/Box"
+import Card from "@mui/material/Card"
+import CardActionArea from "@mui/material/CardActionArea"
+import CardContent from "@mui/material/CardContent"
+import IconButton from "@mui/material/IconButton"
+import Typography from "@mui/material/Typography"
 import ArrowBackIcon from "@mui/icons-material/ArrowBack"
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward"
 
@@ -68,12 +73,11 @@ export const EpisodesCarousel: FC<EpisodesCarouselProps> = (props) => {
       }}
     >
       <IconButton
-        variant="outlined"
-        size="sm"
+        size="small"
         onClick={handleClickPrev}
         sx={{
-          marginY: 5,
-          marginX: 0,
+          my: 5,
+          mx: 0,
           display: "inline-flex",
           width: "auto",
           flexGrow: 0,
@@ -96,69 +100,54 @@ export const EpisodesCarousel: FC<EpisodesCarouselProps> = (props) => {
           flexGrow: 1,
           columnGap: 5,
           rowGap: 5,
-          wrap: "nowrap",
+          flexWrap: "nowrap",
           width: "100%",
         }}
       >
         {pageItems.map((item) => (
           <Card
             sx={{
-              margin: 1,
+              m: 1,
               flexGrow: 1,
-              "&:hover": {
-                boxShadow: "md",
-                backgroundColor:
-                  "var(--joy-palette-neutral-outlinedHoverBg, var(--joy-palette-neutral-100, #EAEEF6))",
-              },
-              outline: activeEpisode === item ? "#fff solid 2px" : "",
+              outline: activeEpisode === item ? "#fff solid 2px" : "none",
             }}
             key={item.episode_num}
           >
-            <CardContent>
-              <div>
-                <Typography
-                  level="title-lg"
-                  textOverflow="ellipsis"
-                  overflow="clip"
-                >
-                  <Link
-                    overlay
-                    underline="none"
-                    textColor="inherit"
-                    textOverflow="ellipsis"
-                    onClick={() => onEpisodeClick(item)}
+            <CardActionArea onClick={() => onEpisodeClick(item)}>
+              <CardContent>
+                <div>
+                  <Typography
+                    variant="subtitle1"
+                    noWrap
                   >
                     {item.title}
-                  </Link>
-                </Typography>
-              </div>
-              <div
-                style={{
-                  height: "100%",
-                  justifyContent: "flex-end",
-                  alignContent: "flex-end",
-                  display: "flex",
-                }}
-              >
-                <Typography
-                  level="body-sm"
-                  textColor="neutral.300"
-                  justifySelf="flex-end"
-                  alignSelf="flex-end"
-                  display="flex"
+                  </Typography>
+                </div>
+                <div
+                  style={{
+                    height: "100%",
+                    justifyContent: "flex-end",
+                    alignContent: "flex-end",
+                    display: "flex",
+                  }}
                 >
-                  S{item.season}:E{item.episode_num}
-                </Typography>
-              </div>
-            </CardContent>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ justifySelf: "flex-end", alignSelf: "flex-end", display: "flex" }}
+                  >
+                    S{item.season}:E{item.episode_num}
+                  </Typography>
+                </div>
+              </CardContent>
+            </CardActionArea>
           </Card>
         ))}
       </Box>
       <IconButton
-        variant="outlined"
-        size="sm"
+        size="small"
         onClick={handleClickNext}
-        sx={{ marginY: 5, display: "inline-flex" }}
+        sx={{ my: 5, display: "inline-flex" }}
         disabled={!hasNext}
       >
         <ArrowForwardIcon />

@@ -1,4 +1,5 @@
-import { Box, BoxProps, Sheet } from "@mui/joy"
+import Box, { type BoxProps } from "@mui/material/Box"
+import Paper from "@mui/material/Paper"
 
 function Root(props: BoxProps) {
   return (
@@ -6,15 +7,14 @@ function Root(props: BoxProps) {
       {...props}
       sx={[
         {
-          bgcolor: "background.appBody",
+          bgcolor: "background.default",
           display: "grid",
           gridTemplateColumns: {
             xs: "1fr",
-            //sm: "minmax(64px, 200px) minmax(450px, 1fr)",
-            //md: "minmax(160px, 250px) minmax(500px, 1fr)", no more sidebar on layout
           },
           gridTemplateRows: "64px 1fr",
-          minHeight: "100vh",
+          height: "100%",
+          maxHeight: "100%",
         },
         ...(Array.isArray(props.sx) ? props.sx : [props.sx]),
       ]}
@@ -31,7 +31,7 @@ function Header(props: BoxProps) {
         {
           p: 2,
           gap: 2,
-          bgcolor: "background.surface",
+          bgcolor: "background.paper",
           display: "flex",
           flexDirection: "row",
           justifyContent: "space-between",
@@ -58,7 +58,7 @@ function SideNav(props: BoxProps) {
       sx={[
         {
           p: 2,
-          bgcolor: "background.surface",
+          bgcolor: "background.paper",
           borderRight: "1px solid",
           borderColor: "divider",
           display: {
@@ -101,22 +101,21 @@ function SideDrawer({
         sx={{
           position: "absolute",
           inset: 0,
-          bgcolor: (theme) =>
-            `rgba(${theme.vars.palette.neutral.darkChannel} / 0.8)`,
+          bgcolor: "rgba(0, 0, 0, 0.5)",
         }}
       />
-      <Sheet
+      <Paper
+        elevation={8}
         sx={{
           minWidth: 256,
           width: "max-content",
           height: "100%",
           p: 2,
-          boxShadow: "lg",
-          bgcolor: "background.surface",
+          bgcolor: "background.paper",
         }}
       >
         {props.children}
-      </Sheet>
+      </Paper>
     </Box>
   )
 }

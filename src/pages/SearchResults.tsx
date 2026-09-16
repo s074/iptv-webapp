@@ -1,4 +1,4 @@
-import { Typography } from "@mui/joy"
+import Typography from "@mui/material/Typography"
 import { FC, useCallback, useState } from "react"
 import { useSearchParams } from "react-router-dom"
 import { MediaCarousel } from "../components/MediaCarousel"
@@ -66,11 +66,7 @@ export const SearchResults: FC = () => {
         {query && (
           <>
             <div style={{ height: 315, marginBottom: 5 }}>
-              <Typography
-                level="title-lg"
-                justifyContent="center"
-                display="flex"
-              >
+              <Typography variant="h6" align="center">
                 Movies
               </Typography>
               {filteredMovies().length > 0 ? (
@@ -84,11 +80,7 @@ export const SearchResults: FC = () => {
               )}
             </div>
             <div style={{ height: 315, marginBottom: 5 }}>
-              <Typography
-                level="title-lg"
-                justifyContent="center"
-                display="flex"
-              >
+              <Typography variant="h6" align="center">
                 Series
               </Typography>
               {filteredSeries().length > 0 ? (
@@ -102,11 +94,7 @@ export const SearchResults: FC = () => {
               )}
             </div>
             <div style={{ height: 315 }}>
-              <Typography
-                level="title-lg"
-                justifyContent="center"
-                display="flex"
-              >
+              <Typography variant="h6" align="center">
                 Channels
               </Typography>
               {filteredChannels().length > 0 ? (

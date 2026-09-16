@@ -1,4 +1,6 @@
-import { Box, CssBaseline, CssVarsProvider, IconButton } from "@mui/joy"
+import Box from "@mui/material/Box"
+import IconButton from "@mui/material/IconButton"
+import { AppThemeProvider } from "./theme"
 import Layout from "./components/layout/Layout"
 import { ColorSchemeToggle } from "./components/common/ColorSchemeToggle"
 import { useEffect, useState } from "react"
@@ -50,8 +52,7 @@ function App() {
   }, [dispatch, status])
 
   return (
-    <CssVarsProvider defaultMode="dark" disableTransitionOnChange>
-      <CssBaseline />
+    <AppThemeProvider>
       {status === "needsAuth" && <Login />}
       {status === "needsLoad" && <Loading />}
       {status === "ready" && (
@@ -79,8 +80,7 @@ function App() {
                 }}
               >
                 <IconButton
-                  variant="outlined"
-                  size="sm"
+                  size="small"
                   onClick={() => setDrawerOpen(true)}
                   sx={{ display: { md: "none" } }}
                 >
@@ -99,15 +99,16 @@ function App() {
               >
                 <ColorSchemeToggle />
                 <IconButton
-                  size="sm"
-                  variant="soft"
+                  size="small"
                   sx={{ display: { xs: "none", sm: "inline-flex" } }}
                 >
                   <GroupRoundedIcon />
                 </IconButton>
               </Box>
             </Layout.Header>
-            <Layout.Main>
+            <Layout.Main sx={{
+              maxHeight: "calc(100% - 64px)",
+            }}>
               <Routes>
                 <Route path={urls.home} element={<Dashboard />} />
                 <Route path={urls.liveTv} element={<LiveTV />} />
@@ -122,7 +123,7 @@ function App() {
           </Layout.Root>
         </>
       )}
-    </CssVarsProvider>
+    </AppThemeProvider>
   )
 }
 

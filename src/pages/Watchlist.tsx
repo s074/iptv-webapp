@@ -1,4 +1,5 @@
-import { Box, Grid } from "@mui/joy"
+import Box from "@mui/material/Box"
+import Grid from "@mui/material/Grid"
 import { FC, useCallback, useState } from "react"
 import { useAppSelector } from "../store/hooks"
 import {
@@ -48,16 +49,9 @@ export const Watchlist: FC = () => {
         <Grid container spacing={2} sx={{ justifyContent: "flex-start" }}>
           {watchlistItems().map((item, index) => (
             <Grid
-              xs={12}
-              sm={6}
-              md={4}
-              lg={3}
-              xl={2}
+              size={{ xs: 12, sm: 6, md: 4, lg: 3, xl: 2 }}
               key={index}
-              display="flex"
-              justifyContent="center"
-              alignItems="center"
-              minHeight={300}
+              sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 300 }}
             >
               <MediaCard onStreamClick={setSelectedStream} stream={item} />
             </Grid>

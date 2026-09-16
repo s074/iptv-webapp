@@ -1,4 +1,6 @@
-import { IconButton, Input, Typography } from "@mui/joy"
+import IconButton from "@mui/material/IconButton"
+import InputAdornment from "@mui/material/InputAdornment"
+import TextField from "@mui/material/TextField"
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded"
 import { FC, useState } from "react"
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom"
@@ -37,29 +39,39 @@ export const SearchInput: FC = () => {
   }
 
   return (
-    <Input
-      size="sm"
+    <TextField
+      size="small"
       variant="outlined"
       placeholder="Search anything…"
-      startDecorator={<SearchRoundedIcon color="primary" />}
-      endDecorator={
-        <IconButton variant="outlined" color="neutral" onClick={onSearch}>
-          <Typography fontWeight="lg" fontSize="sm" textColor="text.icon">
-            Enter
-          </Typography>
-        </IconButton>
-      }
+      value={query}
+      onChange={(e) => setQuery(e.target.value)}
+      onKeyDown={onKeyDown}
       sx={{
         flexBasis: "500px",
         display: {
-          //xs: "none",
           sm: "flex",
         },
-        boxShadow: "sm",
       }}
-      onKeyDown={onKeyDown}
-      value={query}
-      onChange={(e) => setQuery(e.target.value)}
+      slotProps={{
+        input: {
+          startAdornment: (
+            <InputAdornment position="start">
+              <SearchRoundedIcon color="primary" />
+            </InputAdornment>
+          ),
+          endAdornment: (
+            <InputAdornment position="end">
+              <IconButton
+                size="small"
+                onClick={onSearch}
+                aria-label="Search"
+              >
+                <SearchRoundedIcon fontSize="small" />
+              </IconButton>
+            </InputAdornment>
+          ),
+        },
+      }}
     />
   )
 }

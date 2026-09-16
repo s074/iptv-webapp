@@ -8,7 +8,8 @@ import Player from "video.js/dist/types/player"
 import videojs from "video.js"
 import { containerToMimeType } from "../../services/utils"
 import { VodInfoComponent } from "../../components/VodInfoComponent"
-import { Box, Container } from "@mui/joy"
+import Box from "@mui/material/Box"
+import Container from "@mui/material/Container"
 import { useVodUrl } from "../../components/useMediaUrl"
 
 export const WatchMovie: FC = () => {

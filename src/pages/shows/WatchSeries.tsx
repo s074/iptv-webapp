@@ -9,7 +9,9 @@ import { useAppSelector } from "../../store/hooks"
 import { selectSeriesStreams } from "../../store/series/seriesSlice"
 import { VideoPlayer } from "../../components/VideoPlayer"
 import videojs from "video.js"
-import { Box, Container, Typography } from "@mui/joy"
+import Box from "@mui/material/Box"
+import Container from "@mui/material/Container"
+import Typography from "@mui/material/Typography"
 import { SeriesInfoComponent } from "../../components/SeriesInfoComponent"
 import { containerToMimeType } from "../../services/utils"
 import { useEpisodeUrl } from "../../components/useMediaUrl"
@@ -80,11 +82,7 @@ export const WatchSeries: FC = () => {
       {stream && (
         <>
           <Box sx={{ height: "22px" }}>
-            <Typography
-              justifyContent="center"
-              alignContent="center"
-              textAlign="center"
-            >
+            <Typography align="center">
               {selectedEpisode?.title ?? stream.name}
             </Typography>
           </Box>

@@ -1,12 +1,10 @@
-import {
-  IconButton,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemContent,
-  ListItemDecorator,
-  ListSubheader,
-} from "@mui/joy"
+import IconButton from "@mui/material/IconButton"
+import List from "@mui/material/List"
+import ListItem from "@mui/material/ListItem"
+import ListItemButton from "@mui/material/ListItemButton"
+import ListItemIcon from "@mui/material/ListItemIcon"
+import ListItemText from "@mui/material/ListItemText"
+import ListSubheader from "@mui/material/ListSubheader"
 import { FC } from "react"
 import { urls } from "../../services/urls"
 import { useLocation } from "react-router-dom"
@@ -52,38 +50,36 @@ export const NavigatorSidebar: FC = () => {
   const navigate = useNavigate()
 
   return (
-    <List size="sm" sx={{ "--ListItem-radius": "8px", "--List-gap": "4px" }}>
-      <ListItem nested>
-        <ListSubheader>
-          Browse
-          <IconButton
-            size="sm"
-            variant="plain"
-            color="primary"
-            sx={{ "--IconButton-size": "24px", ml: "auto" }}
-          >
-            <KeyboardArrowDownRoundedIcon fontSize="small" color="primary" />
-          </IconButton>
-        </ListSubheader>
-        <List
-          aria-labelledby="nav-list-browse"
-          sx={{
-            "& .JoyListItemButton-root": { p: "8px" },
-          }}
+    <List dense sx={{ width: "100%", maxWidth: 300 }}>
+      <ListSubheader
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          bgcolor: "transparent",
+        }}
+      >
+        Browse
+        <IconButton
+          size="small"
+          color="primary"
+          sx={{ ml: "auto" }}
+          aria-label="collapse browse menu"
         >
-          {navigationItems.map((item) => (
-            <ListItem key={item.url}>
-              <ListItemButton
-                selected={location.pathname === item.url}
-                onClick={() => navigate(item.url)}
-              >
-                <ListItemDecorator>{item.icon}</ListItemDecorator>
-                <ListItemContent>{item.text}</ListItemContent>
-              </ListItemButton>
-            </ListItem>
-          ))}
-        </List>
-      </ListItem>
+          <KeyboardArrowDownRoundedIcon fontSize="small" color="primary" />
+        </IconButton>
+      </ListSubheader>
+      {navigationItems.map((item) => (
+        <ListItem key={item.url} disablePadding>
+          <ListItemButton
+            selected={location.pathname === item.url}
+            onClick={() => navigate(item.url)}
+            sx={{ borderRadius: 2 }}
+          >
+            <ListItemIcon sx={{ minWidth: 36 }}>{item.icon}</ListItemIcon>
+            <ListItemText primary={item.text} />
+          </ListItemButton>
+        </ListItem>
+      ))}
     </List>
   )
 }
@@ -93,32 +89,26 @@ export const NavigatorHeader: FC = () => {
   const navigate = useNavigate()
 
   return (
-    <>
-      <List
-        role="menubar"
-        orientation="horizontal"
-        size="sm"
-        sx={{
-          "--List-radius": "8px",
-          "--List-padding": "4px",
-          "--List-gap": "8px",
-          "--ListItem-gap": "0px",
-          display: { xs: "none", sm: "none", md: "inline-flex" },
-        }}
-      >
-        {navigationItems.map((item) => (
-          <ListItem role="none" key={item.url}>
-            <ListItemButton
-              role="menuitem"
-              selected={location.pathname === item.url}
-              onClick={() => navigate(item.url)}
-            >
-              <ListItemDecorator>{item.icon}</ListItemDecorator>
-              {item.text}
-            </ListItemButton>
-          </ListItem>
-        ))}
-      </List>
-    </>
+    <List
+      sx={{
+        display: { xs: "none", sm: "none", md: "flex" },
+        flexDirection: "row",
+        gap: 1,
+        p: 0.5,
+      }}
+    >
+      {navigationItems.map((item) => (
+        <ListItem key={item.url} disablePadding sx={{ width: "auto" }}>
+          <ListItemButton
+            selected={location.pathname === item.url}
+            onClick={() => navigate(item.url)}
+            sx={{ borderRadius: 2, whiteSpace: "nowrap" }}
+          >
+            <ListItemIcon sx={{ minWidth: 32 }}>{item.icon}</ListItemIcon>
+            <ListItemText primary={item.text} />
+          </ListItemButton>
+        </ListItem>
+      ))}
+    </List>
   )
 }

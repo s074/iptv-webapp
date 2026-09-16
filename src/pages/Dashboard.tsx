@@ -1,17 +1,15 @@
 import { FC, useState } from "react"
 import { useAppDispatch, useAppSelector } from "../store/hooks"
 import { selectAppState } from "../store/app/selector"
-import {
-  Box,
-  Button,
-  ButtonGroup,
-  Card,
-  CardContent,
-  Link,
-  Sheet,
-  Typography,
-  styled,
-} from "@mui/joy"
+import Box from "@mui/material/Box"
+import Button from "@mui/material/Button"
+import ButtonGroup from "@mui/material/ButtonGroup"
+import Card from "@mui/material/Card"
+import CardContent from "@mui/material/CardContent"
+import Link from "@mui/material/Link"
+import Paper from "@mui/material/Paper"
+import Typography from "@mui/material/Typography"
+import { styled } from "@mui/material/styles"
 import { getDateForTimestamp } from "../services/utils"
 import {
   fetchAccountInfo
@@ -71,30 +69,22 @@ export const Dashboard: FC = () => {
       }}
     >
       <Card
-        orientation="horizontal"
         sx={{
           width: "100%",
-          //flexWrap: "wrap",
-          [`& > *`]: {
-            "--stack-point": "500px",
-            minWidth:
-              "clamp(0px, (calc(var(--stack-point) - 2 * var(--Card-padding) - 2 * var(--variant-borderWidth, 0px)) + 1px - 100%) * 999, 100%)",
-          },
-          // make the card resizable for demo
-          //resize: "horizontal",
         }}
       >
         <CardContent
           sx={{
             display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
             justifyContent: "center",
           }}
         >
           <Typography
-            level="title-lg"
-            justifyContent="center"
-            display="flex"
-            paddingBottom={5}
+            variant="h6"
+            align="center"
+            sx={{ pb: 5 }}
           >
             Your Account
           </Typography>
@@ -148,10 +138,10 @@ export const Dashboard: FC = () => {
             </Item>
             <Item>{accountInfo.user_info?.active_cons}</Item>
           </div>
-          <Sheet
+          <Paper
             sx={{
-              bgcolor: "background.level1",
-              borderRadius: "sm",
+              bgcolor: "background.default",
+              borderRadius: 1,
               p: 1.5,
               my: 1.5,
               display: "flex",
@@ -163,82 +153,73 @@ export const Dashboard: FC = () => {
           >
             <div>
               <Typography
-                level="body-xs"
-                fontWeight="lg"
-                justifyContent="center"
-                display="flex"
+                variant="caption"
+                align="center"
+                sx={{ justifyContent: "center", fontWeight: "bold", display: "flex" }}
               >
                 Live Channels
               </Typography>
               <Typography
-                fontWeight="lg"
-                justifyContent="center"
-                display="flex"
+                align="center"
+                sx={{ justifyContent: "center", fontWeight: "bold", display: "flex" }}
               >
                 {liveStreams.length}
               </Typography>
             </div>
             <div>
               <Typography
-                level="body-xs"
-                fontWeight="lg"
-                justifyContent="center"
-                display="flex"
+                variant="caption"
+                align="center"
+                sx={{ justifyContent: "center", fontWeight: "bold", display: "flex" }}
               >
                 Movies
               </Typography>
               <Typography
-                fontWeight="lg"
-                justifyContent="center"
-                display="flex"
+                align="center"
+                sx={{ justifyContent: "center", fontWeight: "bold", display: "flex" }}
               >
                 {vodStreams.length}
               </Typography>
             </div>
             <div>
               <Typography
-                level="body-xs"
-                fontWeight="lg"
-                justifyContent="center"
-                display="flex"
+                variant="caption"
+                align="center"
+                sx={{ justifyContent: "center", fontWeight: "bold", display: "flex" }}
               >
                 TV Shows
               </Typography>
               <Typography
-                fontWeight="lg"
-                justifyContent="center"
-                display="flex"
+                align="center"
+                sx={{ justifyContent: "center", fontWeight: "bold", display: "flex" }}
               >
                 {seriesStreams.length}
               </Typography>
             </div>
             <div>
               <Typography
-                level="body-xs"
-                fontWeight="lg"
-                justifyContent="center"
-                display="flex"
+                variant="caption"
+                align="center"
+                sx={{ justifyContent: "center", fontWeight: "bold", display: "flex" }}
               >
                 Watchlist
               </Typography>
               <Typography
-                fontWeight="lg"
-                justifyContent="center"
-                display="flex"
+                align="center"
+                sx={{ justifyContent: "center", fontWeight: "bold", display: "flex" }}
               >
                 {watchlist.length}
               </Typography>
             </div>
-          </Sheet>
+          </Paper>
           <ButtonGroup
-            spacing={5}
-            sx={{ justifyContent: "space-between", margin: 5 }}
+            sx={{ justifyContent: "space-between", margin: 5, display: "flex", gap: 1 }}
           >
-            <Button variant="solid" color="danger" onClick={deleteAccount}>
+            <Button variant="contained" color="error" onClick={deleteAccount}>
               Sign out
             </Button>
             <Button
-              variant="solid"
+              variant="contained"
               color="primary"
               loading={state === "loading"}
               loadingPosition="start"
@@ -264,11 +245,11 @@ export const Dashboard: FC = () => {
   )
 }
 
-const Item = styled(Sheet)(({ theme }) => ({
-  backgroundColor: theme.palette.background.level1,
-  ...theme.typography["body-sm"],
+const Item = styled(Paper)(({ theme }) => ({
+  backgroundColor: theme.palette.action.hover,
+  ...theme.typography.body2,
   padding: theme.spacing(1),
   textAlign: "center",
   borderRadius: 4,
-  color: theme.vars.palette.text.secondary,
+  color: theme.palette.text.secondary,
 }))

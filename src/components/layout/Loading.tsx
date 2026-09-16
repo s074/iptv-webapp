@@ -1,4 +1,4 @@
-import { CircularProgress } from "@mui/joy"
+import CircularProgress from "@mui/material/CircularProgress"
 import { FC } from "react"
 
 export const Loading: FC = () => {
@@ -12,7 +12,7 @@ export const Loading: FC = () => {
         marginTop: 50,
       }}
     >
-      <CircularProgress size="lg" />
+      <CircularProgress size={40} />
     </main>
   )
 }
