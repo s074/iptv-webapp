@@ -14,10 +14,11 @@ import Menu from "@mui/material/Menu"
 import MenuItem from "@mui/material/MenuItem"
 import Typography from "@mui/material/Typography"
 import { ArrowDropDown } from "@mui/icons-material"
+import OpenInNewRoundedIcon from "@mui/icons-material/OpenInNewRounded"
 import { EpisodesCarousel } from "./EpisodesCarousel"
 import { selectWatchlist, addToWatchlist, removeFromWatchlist } from "../store/watchlist/watchlistSlice"
 import { useEpisodeUrl } from "./useMediaUrl"
-import { copyTextToClibpboard } from "../services/utils"
+import { copyTextToClibpboard, isVlcPlatform, openInVlc } from "../services/utils"
 import { fetchSeriesInfoAsync } from "../store/series/seriesSlice"
 
 export interface SeriesInfoProps {
@@ -204,6 +205,16 @@ export const SeriesInfoComponent: FC<SeriesInfoProps> = (props) => {
                   onClick={() => onClickCopy()}
                 >
                   {`Copy S${selectedSeason?.season_number}E${selectedEpisode?.episode_num} Video Url`}
+                </Button>
+              )}
+              {selectedEpisode && isVlcPlatform() && (
+                <Button
+                  variant="contained"
+                  color="inherit"
+                  startIcon={<OpenInNewRoundedIcon />}
+                  onClick={() => openInVlc(url)}
+                >
+                  Open in VLC
                 </Button>
               )}
             </Box>

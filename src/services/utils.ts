@@ -97,3 +97,40 @@ export const b64DecodeUnicode = (str: string) => {
     return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
   }).join(''));
 }
+
+const getUserAgent = (): string => {
+  if (typeof navigator === "undefined") return ""
+  return navigator.userAgent || ""
+}
+
+export const isAndroid = (): boolean => /android/i.test(getUserAgent())
+
+export const isIos = (): boolean => {
+  const ua = getUserAgent()
+  if (/iPad|iPhone|iPod/i.test(ua)) return true
+  if (typeof window === "undefined") return false
+  // iPadOS reports Macintosh — touch points tell it apart from a real Mac.
+  const nav = navigator as Navigator & {
+    userAgentData?: { platform?: string }
+    platform?: string
+  }
+  const platform = nav.userAgentData?.platform ?? nav.platform ?? ""
+  return /mac/i.test(platform) && navigator.maxTouchPoints > 1
+}
+
+// VLC only registers its URL handler on Android and iOS — desktop builds
+// don't handle vlc:// links, so the "Open in VLC" button is gated to these.
+export const isVlcPlatform = (): boolean => isAndroid() || isIos()
+
+export const buildVlcUrl = (mediaUrl: string): string => {
+  // iOS uses the documented x-callback scheme; Android takes vlc:// + URL.
+  if (isIos()) {
+    return `vlc-x-callback-url://stream?url=${encodeURIComponent(mediaUrl)}`
+  }
+  return `vlc://${mediaUrl}`
+}
+
+export const openInVlc = (mediaUrl: string): void => {
+  // Must run in the button's tap/click handler so the OS honors the scheme.
+  window.location.href = buildVlcUrl(mediaUrl)
+}

@@ -4,13 +4,14 @@ import Box from "@mui/material/Box"
 import Button from "@mui/material/Button"
 import Grid from "@mui/material/Grid"
 import Typography from "@mui/material/Typography"
+import OpenInNewRoundedIcon from "@mui/icons-material/OpenInNewRounded"
 import { useAppDispatch, useAppSelector } from "../store/hooks"
 import { fetchVodInfoAsync } from "../store/vod/vodSlice"
 import { YoutubeVideo } from "./YoutubeVideo"
 import { Loading } from "./layout/Loading"
 import { selectWatchlist, addToWatchlist, removeFromWatchlist } from "../store/watchlist/watchlistSlice"
 import { useVodUrl } from "./useMediaUrl"
-import { copyTextToClibpboard } from "../services/utils"
+import { copyTextToClibpboard, isVlcPlatform, openInVlc } from "../services/utils"
 
 export interface VodInfoProps {
   vod: VodStream
@@ -143,6 +144,16 @@ export const VodInfoComponent: FC<VodInfoProps> = (props) => {
             >
               Copy Video Url
             </Button>
+            {isVlcPlatform() && (
+              <Button
+                variant="contained"
+                color="inherit"
+                startIcon={<OpenInNewRoundedIcon />}
+                onClick={() => openInVlc(url)}
+              >
+                Open in VLC
+              </Button>
+            )}
           </Box>
         </div>
       </Grid>

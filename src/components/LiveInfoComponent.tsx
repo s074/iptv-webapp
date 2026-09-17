@@ -3,9 +3,10 @@ import { LiveStream } from "../services/XtremeCodesAPI.types"
 import Button from "@mui/material/Button"
 import Box from "@mui/material/Box"
 import Grid from "@mui/material/Grid"
+import OpenInNewRoundedIcon from "@mui/icons-material/OpenInNewRounded"
 import { addToFavorites, removeFromFavorites, selectFavorites } from "../store/live/liveSlice"
 import { useAppDispatch, useAppSelector } from "../store/hooks"
-import { copyTextToClibpboard } from "../services/utils"
+import { copyTextToClibpboard, isVlcPlatform, openInVlc } from "../services/utils"
 import { useChannelUrl } from "./useMediaUrl"
 import { ShortEpgComponent } from "./ShortEpgComponent"
 
@@ -72,6 +73,16 @@ export const LiveInfoComponent: FC<LiveInfoProps> = (props) => {
             >
               Copy Video Url
             </Button>
+            {isVlcPlatform() && (
+              <Button
+                variant="contained"
+                color="inherit"
+                startIcon={<OpenInNewRoundedIcon />}
+                onClick={() => openInVlc(url)}
+              >
+                Open in VLC
+              </Button>
+            )}
           </Box>
         </div>
       </Grid>
