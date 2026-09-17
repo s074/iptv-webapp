@@ -25,8 +25,15 @@ import SearchRoundedIcon from "@mui/icons-material/SearchRounded"
 import FolderRoundedIcon from "@mui/icons-material/FolderRounded"
 import CheckRoundedIcon from "@mui/icons-material/CheckRounded"
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded"
+import ScheduleRoundedIcon from "@mui/icons-material/ScheduleRounded"
 import KeyboardArrowDownRoundedIcon from "@mui/icons-material/KeyboardArrowDownRounded"
+import Tooltip from "@mui/material/Tooltip"
 import { glassDialogSlotProps } from "../components/glassDialog"
+import { EpgOffsetDialog } from "../components/EpgOffsetDialog"
+import {
+  formatOffsetLabel,
+  useEpgOffsetMinutes,
+} from "../services/epgTime"
 import { containerToMimeType } from "../services/utils"
 import videojs from "video.js"
 import Player from "video.js/dist/types/player"
@@ -87,6 +94,8 @@ export const LiveTV: FC = () => {
   >(undefined)
   const [catPickerOpen, setCatPickerOpen] = useState(false)
   const [catQuery, setCatQuery] = useState("")
+  const [epgDialogOpen, setEpgDialogOpen] = useState(false)
+  const epgOffsetMinutes = useEpgOffsetMinutes()
   const [channelFilter, setChannelFilter] = useState("")
   const [searchParams, setSearchParams] = useSearchParams()
   const playerRef = useRef<Player | null>(null)
@@ -141,8 +150,7 @@ export const LiveTV: FC = () => {
     return map
   }, [liveStreams])
 
-  const categoryLiveStreams = useMemo(() => {
-    const inCategory = liveStreams.filter(
+  const categoryLiveStreams = useMemo(() => {    const inCategory = liveStreams.filter(
       (stream) => stream.category_id === selectedCategory?.category_id,
     )
     const q = channelFilter.trim().toLocaleLowerCase()
@@ -151,6 +159,12 @@ export const LiveTV: FC = () => {
       s.name?.toLocaleLowerCase().includes(q),
     )
   }, [liveStreams, selectedCategory, channelFilter])
+
+  // The zone all EPG wall times are rendered in (device OS setting).
+  const deviceTimeZone = useMemo(
+    () => Intl.DateTimeFormat().resolvedOptions().timeZone,
+    [],
+  )
 
   const filteredCategories = useMemo(() => {
     const q = catQuery.trim().toLocaleLowerCase()
@@ -297,8 +311,19 @@ export const LiveTV: FC = () => {
           </Typography>
         </Button>
         <Typography variant="caption" color="text.secondary" sx={{ fontVariantNumeric: "tabular-nums" }}>
-          {categoryLiveStreams.length} channels
+          {categoryLiveStreams.length} channels · {deviceTimeZone}
+          {epgOffsetMinutes !== 0 && ` · EPG ${formatOffsetLabel(epgOffsetMinutes)}`}
         </Typography>
+        <Tooltip title="Correct EPG time">
+          <IconButton
+            size="small"
+            color={epgOffsetMinutes !== 0 ? "primary" : "default"}
+            onClick={() => setEpgDialogOpen(true)}
+            aria-label="correct EPG time"
+          >
+            <ScheduleRoundedIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
         <TextField
           size="small"
           placeholder="Filter channels…"
@@ -475,6 +500,11 @@ export const LiveTV: FC = () => {
           </Box>
         </DialogContent>
       </Dialog>
+
+      <EpgOffsetDialog
+        open={epgDialogOpen}
+        onClose={() => setEpgDialogOpen(false)}
+      />
     </Box>
   )
 }

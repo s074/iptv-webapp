@@ -29,7 +29,7 @@ export interface ServerInfo {
   server_protocol?: string
   rtmp_port?: number
   timezone?: string
-  timestamp_now?: number
+  timestamp_now?: number | string
   time_now?: string
   process?: boolean
 }
@@ -285,17 +285,20 @@ export interface LiveStreamEPG {
 }
 
 export interface LiveStreamEPGItem {
-  id?: number
-  epg_id?: number
+  // NOTE: Xtream providers serialize most numeric fields as strings
+  // (e.g. start_timestamp: "1789608600"). Always normalize with Number()
+  // before comparing — never rely on implicit coercion or strict equality.
+  id?: number | string
+  epg_id?: number | string
   title?: string
   lang?: string
   start?: string
   end?: string
   description?: string
   channel_id?: string
-  start_timestamp?: number
-  stop_timestamp?: number
-  now_playing?: number
-  has_archive?: number
-  stream_id?: number
+  start_timestamp?: number | string
+  stop_timestamp?: number | string
+  now_playing?: number | string
+  has_archive?: number | string
+  stream_id?: number | string
 }

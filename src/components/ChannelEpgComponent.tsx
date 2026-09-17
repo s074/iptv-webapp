@@ -11,6 +11,7 @@ import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded"
 import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded"
 import LiveTvRoundedIcon from "@mui/icons-material/LiveTvRounded"
 import { b64DecodeUnicode } from "../services/utils"
+import { useEpgOffsetMinutes } from "../services/epgTime"
 
 export interface ChannelEpgProps {
   epg: LiveStreamEPG | undefined
@@ -21,26 +22,66 @@ export interface ChannelEpgProps {
   hideChannelInfo?: boolean
 }
 
-// Helper to format time from timestamp or ISO string
-const formatTime = (timestamp?: number, timeStr?: string): string => {
-  if (timestamp) {
-    return new Date(timestamp * 1000).toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    })
+// Xtream providers send epoch timestamps as strings ("1789608600").
+// Normalize to numbers up front — implicit coercion and strict checks
+// like `now_playing === 1` silently fail on strings.
+const toEpochSeconds = (value: number | string | undefined): number | undefined => {
+  if (value === undefined || value === null || value === "") return undefined
+  const num = Number(value)
+  return Number.isFinite(num) ? num : undefined
+}
+
+// Helper to format time from timestamp or ISO string.
+// Wall-clock strings from Xtream ("2026-09-17 01:30:00") carry no zone
+// and are UTC — parsing them as local time would shift every listing
+// by the device's UTC offset. offsetMinutes corrects feeds whose epochs
+// are stamped off from the real broadcast (see services/epgTime.ts).
+const formatTime = (
+  timestamp?: number | string,
+  timeStr?: string,
+  offsetMinutes: number = 0,
+): string => {
+  const epoch = toEpochSeconds(timestamp)
+  if (epoch !== undefined) {
+    return new Date((epoch + offsetMinutes * 60) * 1000).toLocaleTimeString(
+      [],
+      {
+        hour: "2-digit",
+        minute: "2-digit",
+      },
+    )
   }
   if (timeStr) {
+    const asUtc = new Date(timeStr.replace(" ", "T") + "Z")
+    if (!Number.isNaN(asUtc.getTime())) {
+      return new Date(
+        asUtc.getTime() + offsetMinutes * 60 * 1000,
+      ).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    }
     const date = new Date(timeStr)
-    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+    if (!Number.isNaN(date.getTime())) {
+      return date.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    }
   }
   return ""
 }
 
 // Calculate progress percentage for currently airing shows
-const getProgress = (item: LiveStreamEPGItem): number => {
+const getProgress = (
+  item: LiveStreamEPGItem,
+  offsetMinutes: number = 0,
+): number => {
   const now = Date.now() / 1000
-  const start = item.start_timestamp ?? 0
-  const end = item.stop_timestamp ?? 0
+  const rawStart = toEpochSeconds(item.start_timestamp)
+  const rawEnd = toEpochSeconds(item.stop_timestamp)
+  const start = rawStart === undefined ? 0 : rawStart + offsetMinutes * 60
+  const end = rawEnd === undefined ? 0 : rawEnd + offsetMinutes * 60
   if (start && end && now >= start && now <= end) {
     return ((now - start) / (end - start)) * 100
   }
@@ -60,14 +101,22 @@ const decodeTitle = (title?: string): string => {
 }
 
 const EpgItem: FC<{ item: LiveStreamEPGItem }> = memo(({ item }) => {
+  const offsetMinutes = useEpgOffsetMinutes()
   const nowSec = Date.now() / 1000
+  const rawStart = toEpochSeconds(item.start_timestamp)
+  const rawStop = toEpochSeconds(item.stop_timestamp)
+  const start =
+    rawStart === undefined ? undefined : rawStart + offsetMinutes * 60
+  const stop =
+    rawStop === undefined ? undefined : rawStop + offsetMinutes * 60
+  const flaggedNowPlaying = Number(item.now_playing) === 1
   const isNowPlaying =
-    item.now_playing === 1 ||
-    (!!item.start_timestamp &&
-      !!item.stop_timestamp &&
-      item.start_timestamp < nowSec &&
-      item.stop_timestamp > nowSec)
-  const progress = getProgress(item)
+    flaggedNowPlaying ||
+    (start !== undefined &&
+      stop !== undefined &&
+      start < nowSec &&
+      stop > nowSec)
+  const progress = getProgress(item, offsetMinutes)
   const title = decodeTitle(item.title)
 
   return (
@@ -138,8 +187,8 @@ const EpgItem: FC<{ item: LiveStreamEPGItem }> = memo(({ item }) => {
             fontVariantNumeric: "tabular-nums",
           }}
         >
-          {formatTime(item.start_timestamp, item.start)} -{" "}
-          {formatTime(item.stop_timestamp, item.end)}
+          {formatTime(item.start_timestamp, item.start, offsetMinutes)} -{" "}
+          {formatTime(item.stop_timestamp, item.end, offsetMinutes)}
         </Typography>
       </Box>
 
@@ -164,20 +213,28 @@ EpgItem.displayName = "EpgItem"
 
 export const ChannelEpgComponent: FC<ChannelEpgProps> = memo((props) => {
   const { epg, stream, onStreamClick, selected, hideChannelInfo = false } = props
+  const offsetMinutes = useEpgOffsetMinutes()
 
   // Sort EPG listings by start time and filter to reasonable window
-  // (same logic as before — looks only)
   const sortedListings = useMemo(() => {
     if (!epg?.epg_listings?.length) return []
     const now = Date.now() / 1000
     return [...epg.epg_listings]
       .filter((item) => {
-        const end = item.stop_timestamp ?? Infinity
+        // Show items that haven't ended yet or ended within the last hour
+        const rawEnd = toEpochSeconds(item.stop_timestamp)
+        const end = rawEnd === undefined ? Infinity : rawEnd + offsetMinutes * 60
         return end > now - 3600
       })
-      .sort((a, b) => (a.start_timestamp ?? 0) - (b.start_timestamp ?? 0))
-      .slice(0, 10)
-  }, [epg?.epg_listings])
+      .sort((a, b) => {
+        // Offset shifts every listing equally, so raw epochs sort identically
+        return (
+          (toEpochSeconds(a.start_timestamp) ?? 0) -
+          (toEpochSeconds(b.start_timestamp) ?? 0)
+        )
+      })
+      .slice(0, 10) // Limit to 10 items for performance
+  }, [epg?.epg_listings, offsetMinutes])
 
   return (
     <Box
