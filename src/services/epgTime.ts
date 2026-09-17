@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from "react"
 
-// Correction (in minutes) applied to provider EPG epochs before display.
+// Correction (in minutes) applied to EPG epochs before display.
 // Some Xtream panels stamp listings with a fixed offset (e.g. +2h) versus
 // the real broadcast. 0 = trust the feed (UTC, per the Xtream convention).
 const STORAGE_KEY = "my-tv-app-epg-offset-minutes"

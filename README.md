@@ -43,9 +43,9 @@ directory from any static web server (nginx, Caddy, Apache, `python -m
 http.server`, GitHub Pages, Cloudflare Pages, …). No proxy or backend is required: all logic
 runs in the browser and talks directly to your Xtream Codes API or M3u playlist.
 
-**Serve it over plain HTTP, not HTTPS.** Xtream providers are almost
+**Serve it over plain HTTP, not HTTPS.** Xtream API backends are almost
 always HTTP-only, and browsers block HTTPS pages from calling HTTP APIs
 (mixed-content blocking) , an HTTPS-hosted copy cannot reach an HTTP-only
-provider at all. If you must use HTTPS, your provider URL must also be
+backend at all. If you must use HTTPS, your URL must also be
 HTTPS. Client-side routing means unknown paths should rewrite to
 `index.html` (e.g. nginx `try_files $uri /index.html`).

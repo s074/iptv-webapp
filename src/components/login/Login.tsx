@@ -319,8 +319,7 @@ export const Login: React.FC = () => {
               />
             </Button>
             <Typography variant="caption" color="text.secondary">
-              An .m3u / .m3u8 file from your provider. It is saved on this
-              device so refreshes are instant.
+              An .m3u / .m3u8 file.
             </Typography>
             <Button
               sx={{ mt: 1 }}

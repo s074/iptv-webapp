@@ -93,7 +93,7 @@ export const EpgOffsetDialog: FC<EpgOffsetDialogProps> = (props) => {
       </DialogTitle>
       <DialogContent dividers>
         <Typography variant="body2" color="text.secondary">
-          If every program is shifted by a fixed amount, your provider stamps
+          If every program is shifted by a fixed amount, your backend stamps
           listings off from the real broadcast. Pick the correction that lines
           them up , it applies to times, live badges, and progress bars.
         </Typography>

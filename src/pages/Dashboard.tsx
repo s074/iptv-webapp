@@ -290,7 +290,7 @@ export const Dashboard: FC = () => {
               )}
               {isXtream ? (
               <Box sx={{ mt: 1 }}>
-                <DetailRow label="Provider" value={accountInfo.server_info?.url} />
+                <DetailRow label="Url" value={accountInfo.server_info?.url} />
                 <Divider />
                 <DetailRow label="Username" value={accountInfo.user_info?.username} />
                 <Divider />

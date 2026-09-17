@@ -79,7 +79,7 @@ export const SeriesInfoComponent: FC<SeriesInfoProps> = (props) => {
   }
 
   const seasons = useCallback(() => {
-    // some providers send faulty API data with an empty seasons array
+    // some backends send faulty API data with an empty seasons array
     // so we have to compensate
     const seasons: SeriesSeason[] = []
 

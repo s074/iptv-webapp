@@ -285,7 +285,7 @@ export interface LiveStreamEPG {
 }
 
 export interface LiveStreamEPGItem {
-  // NOTE: Xtream providers serialize most numeric fields as strings
+  // NOTE: Xtream backends serialize most numeric fields as strings
   // (e.g. start_timestamp: "1789608600"). Always normalize with Number()
   // before comparing , never rely on implicit coercion or strict equality.
   id?: number | string

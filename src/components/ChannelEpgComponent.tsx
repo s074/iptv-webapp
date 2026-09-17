@@ -22,7 +22,7 @@ export interface ChannelEpgProps {
   hideChannelInfo?: boolean
 }
 
-// Xtream providers send epoch timestamps as strings ("1789608600").
+// Xtream backends send epoch timestamps as strings ("1789608600").
 // Normalize to numbers up front , implicit coercion and strict checks
 // like `now_playing === 1` silently fail on strings.
 const toEpochSeconds = (value: number | string | undefined): number | undefined => {
