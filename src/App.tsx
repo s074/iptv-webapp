@@ -27,10 +27,6 @@ import { Watchlist } from "./pages/Watchlist"
 
 import GroupRoundedIcon from "@mui/icons-material/GroupRounded"
 import MenuIcon from "@mui/icons-material/Menu"
-import { loadSeriesFromLocalStorageAsync } from "./store/series/seriesSlice"
-import { loadVodFromLocalStorageAsync } from "./store/vod/vodSlice"
-import { loadFavoritesAsync, loadLiveFromLocalStorageAsync } from "./store/live/liveSlice"
-import { loadWatchlistAsync } from "./store/watchlist/watchlistSlice"
 
 function App() {
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -39,15 +35,14 @@ function App() {
 
   useEffect(() => {
     if (status === "needsLoad") {
-      dispatch(loadApp()).unwrap().then(  () => {
-        dispatch(loadWatchlistAsync())
-        dispatch(loadSeriesFromLocalStorageAsync())
-        dispatch(loadVodFromLocalStorageAsync())
-        dispatch(loadLiveFromLocalStorageAsync())
-        dispatch(loadFavoritesAsync())
-      }).catch(() => {
-        console.log("Failed to load app");
-      })
+      // loadApp validates the stored login, hydrates every slice in
+      // parallel, and only then flips status to "ready" — the loading
+      // screen covers the whole sequence.
+      dispatch(loadApp())
+        .unwrap()
+        .catch(() => {
+          console.log("Failed to load app")
+        })
     }
   }, [dispatch, status])
 

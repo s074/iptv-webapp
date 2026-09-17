@@ -7,6 +7,13 @@ import { localStorageGet } from "../../services/utils"
 import { STORAGE_KEY } from "../../services/constants"
 import { XtremeCodesAPI } from "../../services/XtremeCodesAPI"
 import { RootState } from "../store"
+import { loadSeriesFromLocalStorageAsync } from "../series/seriesSlice"
+import { loadVodFromLocalStorageAsync } from "../vod/vodSlice"
+import {
+  loadFavoritesAsync,
+  loadLiveFromLocalStorageAsync,
+} from "../live/liveSlice"
+import { loadWatchlistAsync } from "../watchlist/watchlistSlice"
 
 export const loadApp = createAsyncThunk<
   {
@@ -42,6 +49,18 @@ export const loadApp = createAsyncThunk<
     } catch (e) {
       return Promise.reject("stored login no longer valid")
     }
+
+    // Hydrate all slices in parallel. Best-effort (allSettled): a corrupt
+    // local cache must never log the user out. `ready` is only set once
+    // this completes, so the loading screen covers the full load.
+    await Promise.allSettled([
+      thunkAPI.dispatch(loadWatchlistAsync()),
+      thunkAPI.dispatch(loadSeriesFromLocalStorageAsync()),
+      thunkAPI.dispatch(loadVodFromLocalStorageAsync()),
+      thunkAPI.dispatch(loadLiveFromLocalStorageAsync()),
+      thunkAPI.dispatch(loadFavoritesAsync()),
+    ])
+
     return {
       apiConfig: config,
     }
