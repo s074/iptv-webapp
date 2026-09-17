@@ -123,9 +123,12 @@ export const isIos = (): boolean => {
 export const isVlcPlatform = (): boolean => isAndroid() || isIos()
 
 export const buildVlcUrl = (mediaUrl: string): string => {
-  // iOS uses the documented x-callback scheme; Android takes vlc:// + URL.
+  // Per https://wiki.videolan.org/Documentation:IOS/ :
+  // vlc-x-callback://x-callback-url/ACTION?url=... — `stream` plays the
+  // stream from the URL parameter (x-success/x-error optional). The inner
+  // URL is percent-encoded per the x-callback-url spec.
   if (isIos()) {
-    return `vlc-x-callback-url://stream?url=${encodeURIComponent(mediaUrl)}`
+    return `vlc-x-callback://x-callback-url/stream?url=${encodeURIComponent(mediaUrl)}`
   }
   return `vlc://${mediaUrl}`
 }
