@@ -40,14 +40,14 @@ export interface AccountInfo {
 }
 
 export interface Category {
-  category_id?: number // actually string
+  category_id?: number | string
   category_name?: string
   parent_id?: number
 }
 
 export interface Stream {
   added?: number
-  category_id?: number
+  category_id?: number | string
   category_ids?: number[]
   custom_sid?: string
   direct_source?: string
@@ -74,7 +74,7 @@ export interface VodStream extends Stream {
 }
 
 export interface SeriesStream {
-  category_id?: number
+  category_id?: number | string
   category_ids?: number[]
   num?: number
   name?: string

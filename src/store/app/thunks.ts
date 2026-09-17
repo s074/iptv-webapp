@@ -3,21 +3,29 @@ import {
   XtremeCodesConfig,
   AccountInfo,
 } from "../../services/XtremeCodesAPI.types"
-import { localStorageGet } from "../../services/utils"
+import {
+  deleteAccountFromLocalStorage,
+  localStorageGet,
+} from "../../services/utils"
 import { STORAGE_KEY } from "../../services/constants"
 import { XtremeCodesAPI } from "../../services/XtremeCodesAPI"
 import { RootState } from "../store"
-import { loadSeriesFromLocalStorageAsync } from "../series/seriesSlice"
-import { loadVodFromLocalStorageAsync } from "../vod/vodSlice"
+import { loadSeriesFromLocalStorageAsync, setSeriesCategories, setSeriesStreams } from "../series/seriesSlice"
+import { loadVodFromLocalStorageAsync, setVodCategories, setVodStreams } from "../vod/vodSlice"
 import {
   loadFavoritesAsync,
   loadLiveFromLocalStorageAsync,
+  setLiveCategories,
+  setLiveStreams,
 } from "../live/liveSlice"
 import { loadWatchlistAsync } from "../watchlist/watchlistSlice"
+import { MediaSource } from "../types"
+import { Category, LiveStream } from "../../services/XtremeCodesAPI.types"
 
 export const loadApp = createAsyncThunk<
   {
     apiConfig: XtremeCodesConfig
+    mediaSource: MediaSource
   },
   void,
   { state: RootState }
@@ -28,7 +36,18 @@ export const loadApp = createAsyncThunk<
     thunkAPI,
   ): Promise<{
     apiConfig: XtremeCodesConfig
+    mediaSource: MediaSource
   }> => {
+    const mediaSourceStr = await localStorageGet(STORAGE_KEY.MEDIA_SOURCE)
+
+    if (mediaSourceStr) {
+      const mediaSource = JSON.parse(mediaSourceStr) as MediaSource
+      if (mediaSource.kind === "m3u") {
+        return loadM3USource(thunkAPI, mediaSource)
+      }
+      // kind "xtream" → fall through to the credential flow below
+    }
+
     const apiConfig = await localStorageGet(STORAGE_KEY.API_CONFIG)
 
     if (!apiConfig) return Promise.reject("no stored login found")
@@ -63,9 +82,60 @@ export const loadApp = createAsyncThunk<
 
     return {
       apiConfig: config,
+      mediaSource: { kind: "xtream" },
     }
   },
 )
+
+/**
+ * M3U cold start: no network, channels/categories come from the stored
+ * parse. VOD/series slices are explicitly cleared so a previous Xtream
+ * session in the same tab can't leak through.
+ */
+async function loadM3USource(
+  thunkAPI: {
+    dispatch: (action: any) => any
+    getState: () => RootState
+  },
+  mediaSource: Extract<MediaSource, { kind: "m3u" }>,
+): Promise<{ apiConfig: XtremeCodesConfig; mediaSource: MediaSource }> {
+  const [channelsStr, categoriesStr] = await Promise.all([
+    localStorageGet(STORAGE_KEY.M3U_CHANNELS),
+    localStorageGet(STORAGE_KEY.M3U_CATEGORIES),
+  ])
+
+  if (!channelsStr || !categoriesStr) {
+    return Promise.reject("stored playlist missing")
+  }
+
+  const channels = JSON.parse(channelsStr) as LiveStream[]
+  const categories = JSON.parse(categoriesStr) as Category[]
+
+  if (
+    !Array.isArray(channels) ||
+    channels.length === 0 ||
+    !Array.isArray(categories)
+  ) {
+    return Promise.reject("stored playlist empty")
+  }
+
+  thunkAPI.dispatch(setLiveCategories(categories))
+  thunkAPI.dispatch(setLiveStreams(channels))
+  thunkAPI.dispatch(setSeriesCategories([]))
+  thunkAPI.dispatch(setSeriesStreams([]))
+  thunkAPI.dispatch(setVodCategories([]))
+  thunkAPI.dispatch(setVodStreams([]))
+
+  await Promise.allSettled([
+    thunkAPI.dispatch(loadWatchlistAsync()),
+    thunkAPI.dispatch(loadFavoritesAsync()),
+  ])
+
+  return {
+    apiConfig: { baseUrl: "", auth: { username: "", password: "" } },
+    mediaSource,
+  }
+}
 
 export const fetchAccountInfo = createAsyncThunk<
   AccountInfo,
@@ -80,5 +150,12 @@ export const fetchAccountInfo = createAsyncThunk<
     const apiConfig = arg.config ?? thunkAPI.getState().app.apiConfig
 
     return await XtremeCodesAPI.getAccountInfo(apiConfig)
+  },
+)
+
+export const removeAccount = createAsyncThunk<void, void, { state: RootState }>(
+  "removeAccount",
+  async () => {
+    await deleteAccountFromLocalStorage()
   },
 )

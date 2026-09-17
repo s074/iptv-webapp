@@ -4,6 +4,7 @@ import { Category, LiveStream } from "../../services/XtremeCodesAPI.types";
 import { localStorageGet, localStorageSet } from "../../services/utils";
 import { STORAGE_KEY } from "../../services/constants";
 import { XtremeCodesAPI } from "../../services/XtremeCodesAPI";
+import { m3uToLiveChannels, parseM3U } from "../../services/m3u";
 import { RootState } from "../store";
 
 export interface LiveTvState {
@@ -134,8 +135,7 @@ export const liveSlice = createAppSlice({
             }
         ),
         fetchShortEpgAsync: create.asyncThunk(
-            async (arg: {channelId: number; limit: number}, thunkAPI) => {
-                const state = thunkAPI.getState() as RootState
+            async (arg: {channelId: number; limit: number}, thunkAPI) => {                const state = thunkAPI.getState() as RootState
                 
                 const config = state.app.apiConfig
             
@@ -150,6 +150,27 @@ export const liveSlice = createAppSlice({
                 return epg
             },
         ),
+        connectM3UPlaylist: create.asyncThunk(
+            async (arg: { text: string; baseUrl?: string }) => {
+                const entries = parseM3U(arg.text, arg.baseUrl)
+                return m3uToLiveChannels(entries)
+            },
+            {
+                fulfilled: (state, action: PayloadAction<{ categories: Category[]; streams: LiveStream[] }>) => {
+                    state.liveCategories = action.payload.categories
+                    state.liveStreams = action.payload.streams
+
+                    localStorageSet(
+                        STORAGE_KEY.M3U_CATEGORIES,
+                        JSON.stringify(state.liveCategories),
+                    ).catch(console.error)
+                    localStorageSet(
+                        STORAGE_KEY.M3U_CHANNELS,
+                        JSON.stringify(state.liveStreams),
+                    ).catch(console.error)
+                }
+            },
+        ),
     }),
     selectors: {
         selectLiveCategories: (state: LiveTvState) => state.liveCategories,
@@ -159,5 +180,5 @@ export const liveSlice = createAppSlice({
    
 })
 
-export const {setLiveCategories, setLiveStreams, loadLiveFromLocalStorageAsync, fetchLiveCategoriesAsync, fetchLiveStreamsAsync, fetchShortEpgAsync, addToFavorites, removeFromFavorites, loadFavoritesAsync} = liveSlice.actions
+export const {setLiveCategories, setLiveStreams, loadLiveFromLocalStorageAsync, fetchLiveCategoriesAsync, fetchLiveStreamsAsync, fetchShortEpgAsync, connectM3UPlaylist, addToFavorites, removeFromFavorites, loadFavoritesAsync} = liveSlice.actions
 export const {selectLiveCategories, selectLiveStreams, selectFavorites} = liveSlice.selectors

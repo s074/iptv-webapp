@@ -1,8 +1,9 @@
-import { FC, useState } from "react"
+import { FC, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useAppDispatch, useAppSelector } from "../store/hooks"
-import { selectAppState } from "../store/app/selector"
+import { selectAppState, selectMediaSource } from "../store/app/selector"
 import { urls } from "../services/urls"
+import Alert from "@mui/material/Alert"
 import Box from "@mui/material/Box"
 import Button from "@mui/material/Button"
 import Card from "@mui/material/Card"
@@ -18,15 +19,17 @@ import BookmarkRoundedIcon from "@mui/icons-material/BookmarkRounded"
 import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded"
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded"
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded"
+import PlaylistPlayRoundedIcon from "@mui/icons-material/PlaylistPlayRounded"
 import { getDateForTimestamp } from "../services/utils"
 import {
-  fetchAccountInfo
+  fetchAccountInfo, removeAccount
 } from "../store/app/thunks"
-import { removeAccount } from "../store/app/appSlice"
+import { setMediaSource } from "../store/app/appSlice"
 import { fetchSeriesCategoriesAsync, fetchSeriesStreamsAsync, selectSeriesStreams } from "../store/series/seriesSlice"
 import { selectWatchlist } from "../store/watchlist/watchlistSlice"
 import { fetchVodCategoriesAsync, fetchVodStreamsAsync, selectVodStreams } from "../store/vod/vodSlice"
-import { fetchLiveCategoriesAsync, fetchLiveStreamsAsync, selectLiveStreams } from "../store/live/liveSlice"
+import { connectM3UPlaylist, fetchLiveCategoriesAsync, fetchLiveStreamsAsync, selectLiveStreams } from "../store/live/liveSlice"
+import { MediaSource } from "../store/types"
 import { thinScrollbarSx } from "../components/scrollbar"
 
 function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
@@ -52,22 +55,65 @@ function DetailRow({ label, value }: { label: string; value: React.ReactNode }) 
 
 export const Dashboard: FC = () => {
   const [state, setState] = useState<"loading" | "ready">("ready")
+  const [error, setError] = useState("")
   const {
     accountInfo,
     lastFetchedAccountInfo,
   } = useAppSelector(selectAppState)
+  const mediaSource = useAppSelector(selectMediaSource)
+  const isXtream = mediaSource === null || mediaSource.kind === "xtream"
+  const isM3U = mediaSource?.kind === "m3u"
   const seriesStreams = useAppSelector(selectSeriesStreams)
   const watchlist = useAppSelector(selectWatchlist)
   const vodStreams = useAppSelector(selectVodStreams)
   const liveStreams = useAppSelector(selectLiveStreams)
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
 
   const refreshInfo = () => {
     dispatch(fetchAccountInfo({}))
   }
 
+  const connectText = async (text: string, meta: MediaSource, base?: string) => {
+    try {
+      await dispatch(connectM3UPlaylist({ text, baseUrl: base })).unwrap()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not read that playlist")
+      setState("ready")
+      return
+    }
+    dispatch(setMediaSource(meta))
+    setState("ready")
+  }
+
   const refreshPlaylist = async () => {
+    setError("")
+    if (isM3U && mediaSource?.origin === "url" && mediaSource.url) {
+      setState("loading")
+      try {
+        const response = await fetch(mediaSource.url)
+        if (!response.ok) {
+          setError(`Playlist download failed (HTTP ${response.status})`)
+          setState("ready")
+          return
+        }
+        const text = await response.text()
+        await connectText(text, { ...mediaSource, fetchedAt: Date.now() }, mediaSource.url)
+      } catch (e) {
+        setError("Could not download that playlist — check the URL")
+        console.log(e)
+      }
+      setState("ready")
+      return
+    }
+
+    if (isM3U && mediaSource?.origin === "file") {
+      // Browsers can't re-read a user file unprompted — open the picker.
+      fileInputRef.current?.click()
+      return
+    }
+
     setState("loading")
     try {
       await Promise.all([
@@ -84,11 +130,34 @@ export const Dashboard: FC = () => {
     setState("ready")
   }
 
+  const handleReplaceFile = async (file: File | undefined) => {
+    if (!file || !isM3U) return
+    setError("")
+    setState("loading")
+    try {
+      const text = await file.text()
+      await connectText(text, {
+        kind: "m3u",
+        origin: "file",
+        fileName: file.name,
+        fetchedAt: Date.now(),
+      })
+    } catch (e) {
+      setError("Could not read that file")
+      console.log(e)
+    }
+    setState("ready")
+  }
+
   const deleteAccount = () => {
     dispatch(removeAccount())
   }
 
   const status = accountInfo.user_info?.status ?? "Unknown"
+  const lastRefreshed =
+    isM3U && mediaSource?.fetchedAt
+      ? new Date(mediaSource.fetchedAt).toLocaleTimeString()
+      : new Date(lastFetchedAccountInfo).toLocaleTimeString()
   const stats = [
     {
       label: "Live Channels",
@@ -130,19 +199,36 @@ export const Dashboard: FC = () => {
         {/* Header */}
         <Box sx={{ px: 1, pt: 1, pb: 2 }}>
           <Typography variant="h5" sx={{ fontWeight: 700 }}>
-            Welcome{accountInfo.user_info?.username ? `, ${accountInfo.user_info.username}` : ""}
+            Welcome{isXtream && accountInfo.user_info?.username ? `, ${accountInfo.user_info.username}` : ""}
           </Typography>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 1, flexWrap: "wrap" }}>
-            <Typography variant="body2" color="text.secondary" noWrap>
-              {accountInfo.server_info?.url}
-            </Typography>
-            <Chip
-              size="small"
-              icon={<CheckCircleRoundedIcon sx={{ fontSize: 14 }} />}
-              label={status}
-              color={status === "Active" ? "success" : "default"}
-              sx={{ height: 22, fontWeight: 600 }}
-            />
+            {isXtream ? (
+              <>
+                <Typography variant="body2" color="text.secondary" noWrap>
+                  {accountInfo.server_info?.url}
+                </Typography>
+                <Chip
+                  size="small"
+                  icon={<CheckCircleRoundedIcon sx={{ fontSize: 14 }} />}
+                  label={status}
+                  color={status === "Active" ? "success" : "default"}
+                  sx={{ height: 22, fontWeight: 600 }}
+                />
+              </>
+            ) : (
+              <>
+                <Typography variant="body2" color="text.secondary" noWrap>
+                  {mediaSource?.origin === "url" ? mediaSource.url : mediaSource?.fileName}
+                </Typography>
+                <Chip
+                  size="small"
+                  icon={<PlaylistPlayRoundedIcon sx={{ fontSize: 14 }} />}
+                  label="M3U Playlist"
+                  color="primary"
+                  sx={{ height: 22, fontWeight: 600 }}
+                />
+              </>
+            )}
           </Box>
         </Box>
 
@@ -190,13 +276,19 @@ export const Dashboard: FC = () => {
           ))}
         </Box>
 
-        {/* Account */}
+        {/* Account / Source */}
         <Box sx={{ px: 1 }}>
           <Card sx={{ borderRadius: 3, border: "1px solid", borderColor: "divider" }}>
             <CardContent>
               <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                Account
+                {isXtream ? "Account" : "Playlist source"}
               </Typography>
+              {error && (
+                <Alert severity="error" sx={{ mt: 1.5 }} onClose={() => setError("")}>
+                  {error}
+                </Alert>
+              )}
+              {isXtream ? (
               <Box sx={{ mt: 1 }}>
                 <DetailRow label="Provider" value={accountInfo.server_info?.url} />
                 <Divider />
@@ -227,6 +319,27 @@ export const Dashboard: FC = () => {
                 <Divider />
                 <DetailRow label="Active connections" value={accountInfo.user_info?.active_cons} />
               </Box>
+              ) : (
+              <Box sx={{ mt: 1 }}>
+                <DetailRow label="Type" value={`M3U playlist (${mediaSource?.origin === "url" ? "URL" : "file"})`} />
+                <Divider />
+                <DetailRow
+                  label={mediaSource?.origin === "url" ? "URL" : "File"}
+                  value={mediaSource?.origin === "url" ? mediaSource.url : mediaSource?.fileName}
+                />
+                <Divider />
+                <DetailRow label="Channels" value={liveStreams.length} />
+                <Divider />
+                <DetailRow
+                  label="Saved"
+                  value={
+                    mediaSource?.fetchedAt
+                      ? new Date(mediaSource.fetchedAt).toLocaleString()
+                      : "—"
+                  }
+                />
+              </Box>
+              )}
 
               <Stack direction={{ xs: "column", sm: "row" }} spacing={1} sx={{ mt: 2.5 }}>
                 <Button
@@ -239,9 +352,11 @@ export const Dashboard: FC = () => {
                 >
                   Update playlist
                 </Button>
-                <Button variant="outlined" onClick={refreshInfo}>
-                  Refresh account info
-                </Button>
+                {isXtream && (
+                  <Button variant="outlined" onClick={refreshInfo}>
+                    Refresh account info
+                  </Button>
+                )}
                 <Box sx={{ flexGrow: 1 }} />
                 <Button
                   variant="outlined"
@@ -249,12 +364,22 @@ export const Dashboard: FC = () => {
                   startIcon={<LogoutRoundedIcon />}
                   onClick={deleteAccount}
                 >
-                  Sign out
+                  {isXtream ? "Sign out" : "Remove source"}
                 </Button>
               </Stack>
               <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 1.5 }}>
-                Last refreshed: {new Date(lastFetchedAccountInfo).toLocaleTimeString()}
+                Last refreshed: {lastRefreshed}
               </Typography>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".m3u,.m3u8,audio/x-mpegurl,application/x-mpegurl"
+                hidden
+                onChange={(e) => {
+                  void handleReplaceFile(e.target.files?.[0])
+                  e.target.value = ""
+                }}
+              />
             </CardContent>
           </Card>
         </Box>

@@ -1,6 +1,7 @@
 import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useAppSelector } from "../store/hooks"
 import { selectLiveCategories, selectLiveStreams } from "../store/live/liveSlice"
+import { selectIsXtreamSource } from "../store/app/selector"
 import Box from "@mui/material/Box"
 import List from "@mui/material/List"
 import ListItem from "@mui/material/ListItem"
@@ -86,6 +87,7 @@ PickerScroller.displayName = "PickerScroller"
 export const LiveTV: FC = () => {
   const liveStreams = useAppSelector(selectLiveStreams)
   const liveStreamCategories = useAppSelector(selectLiveCategories)
+  const isXtream = useAppSelector(selectIsXtreamSource)
   const [selectedStream, setSelectedStream] = useState<LiveStream | undefined>(
     undefined,
   )
@@ -314,6 +316,7 @@ export const LiveTV: FC = () => {
           {categoryLiveStreams.length} channels · {deviceTimeZone}
           {epgOffsetMinutes !== 0 && ` · EPG ${formatOffsetLabel(epgOffsetMinutes)}`}
         </Typography>
+        {isXtream && (
         <Tooltip title="Correct EPG time">
           <IconButton
             size="small"
@@ -324,6 +327,7 @@ export const LiveTV: FC = () => {
             <ScheduleRoundedIcon fontSize="small" />
           </IconButton>
         </Tooltip>
+        )}
         <TextField
           size="small"
           placeholder="Filter channels…"

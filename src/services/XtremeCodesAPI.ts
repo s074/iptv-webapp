@@ -76,7 +76,7 @@ export class XtremeCodesAPI {
 
   public static getLiveStreams(
     config: XtremeCodesConfig,
-    categoryId?: number,
+    categoryId?: number | string,
   ): Promise<LiveStream[]> {
     if (categoryId === undefined) {
       return this.execute(config, "get_live_streams")
@@ -89,7 +89,7 @@ export class XtremeCodesAPI {
 
   public static getVODStreams(
     config: XtremeCodesConfig,
-    categoryId?: number,
+    categoryId?: number | string,
   ): Promise<VodStream[]> {
     if (categoryId === undefined) {
       return this.execute(config, "get_vod_streams")
@@ -102,7 +102,7 @@ export class XtremeCodesAPI {
 
   public static getSeriesStreams(
     config: XtremeCodesConfig,
-    categoryId?: number,
+    categoryId?: number | string,
   ): Promise<SeriesStream[]> {
     if (categoryId === undefined) {
       return this.execute(config, "get_series")

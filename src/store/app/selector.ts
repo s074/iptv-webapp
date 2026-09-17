@@ -14,6 +14,16 @@ export const selectAppStatus = createSelector(
   (app) => app.status,
 )
 
+export const selectMediaSource = createSelector(
+  selectAppState,
+  (app) => app.mediaSource,
+)
+
+export const selectIsXtreamSource = createSelector(
+  selectMediaSource,
+  (mediaSource) => mediaSource === null || mediaSource.kind === "xtream",
+)
+
 export const selectAccountInfo = createSelector(
   selectAppState,
   (app) => app.accountInfo,

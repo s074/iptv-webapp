@@ -1,6 +1,7 @@
 import { FC, useEffect, useState } from "react";
-import { useAppDispatch } from "../store/hooks";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { fetchShortEpgAsync } from "../store/live/liveSlice";
+import { selectIsXtreamSource } from "../store/app/selector";
 import { LiveStream, LiveStreamEPG } from "../services/XtremeCodesAPI.types";
 import { ChannelEpgComponent } from "./ChannelEpgComponent";
 
@@ -14,9 +15,12 @@ interface ShortEpgProps {
 export const ShortEpgComponent: FC<ShortEpgProps> = (props) => {
     const { stream, limit, onStreamClick, selected, hideChannelInfo = false } = props
     const dispatch = useAppDispatch()
+    const isXtream = useAppSelector(selectIsXtreamSource)
     const [epg, setEpg] = useState<LiveStreamEPG | undefined>(undefined)
     
     useEffect(() => {
+        // M3U sources have no EPG backend — render the row without listings.
+        if (!isXtream) return
         const fetchData = async () => {
             try {
               const info = await dispatch(fetchShortEpgAsync({ channelId: stream.stream_id!, limit: limit ?? 5 })).unwrap()
@@ -27,7 +31,7 @@ export const ShortEpgComponent: FC<ShortEpgProps> = (props) => {
         }
     
         fetchData()
-      }, [stream, dispatch])
+      }, [stream, dispatch, isXtream])
 
     return (
         <ChannelEpgComponent epg={epg} offset={0} stream={stream} onStreamClick={(stream) => onStreamClick(stream) } selected={selected } hideChannelInfo={hideChannelInfo} />
