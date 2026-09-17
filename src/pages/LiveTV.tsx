@@ -105,7 +105,7 @@ export const LiveTV: FC = () => {
 
   const channelId = searchParams.get("channel")
 
-  // Same selection logic as before — URL param drives the player
+  // Same selection logic as before , URL param drives the player
   useEffect(() => {
     const firstCategory = liveStreamCategories.find(
       (item) => item.category_id !== undefined,
@@ -262,7 +262,7 @@ export const LiveTV: FC = () => {
             </Typography>
           </Box>
           {/* Video size is capped relative to the viewport so the channel
-              list below always keeps room on the page — only the list scrolls. */}
+              list below always keeps room on the page , only the list scrolls. */}
           <Box
             sx={{
               width: "min(100%, calc(40dvh * 16 / 9))",
@@ -276,7 +276,7 @@ export const LiveTV: FC = () => {
         </Paper>
       )}
 
-      {/* Guide header — category picker + count + filter */}
+      {/* Guide header , category picker + count + filter */}
       <Paper
         elevation={0}
         sx={{
@@ -342,7 +342,7 @@ export const LiveTV: FC = () => {
         />
       </Paper>
 
-      {/* Guide body — takes remaining page height; only this list scrolls. */}
+      {/* Guide body , takes remaining page height; only this list scrolls. */}
       <Box
         sx={{
           flex: 1,
@@ -394,7 +394,7 @@ export const LiveTV: FC = () => {
         </Box>
       </Box>
 
-      {/* Mobile category picker modal — same pattern as Movies/TVShows */}
+      {/* Mobile category picker modal , same pattern as Movies/TVShows */}
       <Dialog
         open={catPickerOpen}
         onClose={() => setCatPickerOpen(false)}

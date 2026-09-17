@@ -1,6 +1,6 @@
 import type { DialogProps } from "@mui/material/Dialog"
 
-// Shared glassy dialog surface (ynotv-style) — theme-aware so text stays
+// Shared glassy dialog surface , theme-aware so text stays
 // readable in both dark and light mode.
 export const glassDialogSlotProps: DialogProps["slotProps"] = {
   paper: {

@@ -20,7 +20,7 @@ import {
 import { glassDialogSlotProps } from "./glassDialog"
 
 const PRESET_MINUTES = [-180, -120, -60, -30, 0, 30, 60, 120, 180]
-// DWTS listing from a real response — gives users a concrete preview.
+// DWTS listing from a real response , gives users a concrete preview.
 const SAMPLE_EPOCH = 1789610400
 
 function formatPreview(epochSeconds: number, offsetMinutes: number): string {
@@ -56,7 +56,7 @@ export const EpgOffsetDialog: FC<EpgOffsetDialogProps> = (props) => {
 
   // If the panel stamps server-wall time as UTC, the correction is the
   // negative of the server's UTC offset. Offered as a one-tap suggestion,
-  // never auto-applied — the mechanism is inferred, and DST can move it.
+  // never auto-applied , the mechanism is inferred, and DST can move it.
   const serverSuggestion = useMemo(() => {
     if (!serverInfo?.timezone) return undefined
     const serverOffset = getTimeZoneOffsetMinutes(serverInfo.timezone)
@@ -95,7 +95,7 @@ export const EpgOffsetDialog: FC<EpgOffsetDialogProps> = (props) => {
         <Typography variant="body2" color="text.secondary">
           If every program is shifted by a fixed amount, your provider stamps
           listings off from the real broadcast. Pick the correction that lines
-          them up — it applies to times, live badges, and progress bars.
+          them up , it applies to times, live badges, and progress bars.
         </Typography>
 
         <Box sx={{ mt: 2, display: "flex", flexDirection: "column", gap: 0.5 }}>
@@ -156,7 +156,7 @@ export const EpgOffsetDialog: FC<EpgOffsetDialogProps> = (props) => {
                 )
               </Typography>
               <Typography variant="caption" color="text.secondary">
-                Listings look stamped in server time — apply{" "}
+                Listings look stamped in server time , apply{" "}
                 {formatOffsetLabel(serverSuggestion.suggestion)}?
               </Typography>
             </Box>
@@ -193,7 +193,7 @@ export const EpgOffsetDialog: FC<EpgOffsetDialogProps> = (props) => {
           }}
         >
           <Typography variant="caption" color="text.secondary">
-            Preview — a 02:00 UTC listing will display as:
+            Preview , a 02:00 UTC listing will display as:
           </Typography>
           <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
             {formatPreview(SAMPLE_EPOCH, offsetMinutes)}

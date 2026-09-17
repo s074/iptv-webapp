@@ -10,10 +10,10 @@ export interface VideoPlayerProps {
 }
 
 // iOS Safari implements neither document.pictureInPictureEnabled nor
-// el.requestPictureInPicture() — the only PiP path video.js speaks.
+// el.requestPictureInPicture() , the only PiP path video.js speaks.
 // It only exposes the WebKit-prefixed presentation-mode API on the
 // <video> element, so video.js's built-in toggle stays disabled on
-// iPhones. This button covers that path (and only that path — where
+// iPhones. This button covers that path (and only that path , where
 // the standard API exists, the built-in toggle keeps working).
 //
 // Note: home-screen web apps run in a restricted web view, not full
@@ -79,12 +79,12 @@ function getTechVideoEl(player: Player): WebkitPresentationVideo | null {
 
 // True when the page must handle PiP itself: the standard API is missing
 // (iOS Safari and home-screen web apps). The button is added in both
-// cases — where even the WebKit API is missing, a tap explains why and
+// cases , where even the WebKit API is missing, a tap explains why and
 // offers native fullscreen instead of silently doing nothing.
 function shouldAddIosPiPButton(player: Player): boolean {
   if (typeof document !== "undefined") {
     const doc = document as Document & { pictureInPictureEnabled?: boolean }
-    // Standard API present (desktop/Android) — the built-in toggle handles it.
+    // Standard API present (desktop/Android) , the built-in toggle handles it.
     if (doc.pictureInPictureEnabled) return false
   }
   return getTechVideoEl(player) !== null
@@ -109,13 +109,13 @@ function tryWebkitPiP(el: WebkitPresentationVideo): boolean {
       return true
     }
     if (el.webkitDisplayingFullscreen && el.webkitExitFullscreen) {
-      // iOS refuses PiP straight from native fullscreen — step out first.
+      // iOS refuses PiP straight from native fullscreen , step out first.
       el.webkitExitFullscreen()
       window.setTimeout(() => {
         try {
           el.webkitSetPresentationMode?.("picture-in-picture")
         } catch {
-          // ignore — likely tapped before metadata loaded
+          // ignore , likely tapped before metadata loaded
         }
       }, 350)
       return true
@@ -139,7 +139,7 @@ function tryFullscreenFallback(el: WebkitPresentationVideo): boolean {
       return true
     }
   } catch {
-    // ignore — fall through to the explanatory message
+    // ignore , fall through to the explanatory message
   }
   return false
 }
@@ -266,7 +266,7 @@ export const VideoPlayer: FC<VideoPlayerProps> = (props) => {
         open={pipUnavailable}
         autoHideDuration={7000}
         onClose={() => setPipUnavailable(false)}
-        message="Picture-in-Picture isn't available in the home-screen app — open this page in Safari for PiP, or use fullscreen."
+        message="Picture-in-Picture isn't available in the home-screen app , open this page in Safari for PiP, or use fullscreen."
       />
     </div>
   )

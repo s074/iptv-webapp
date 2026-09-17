@@ -64,7 +64,7 @@ export function formatOffsetLabel(minutes: number): string {
 
 // UTC offset of an IANA zone at a given instant, in minutes east of UTC
 // (e.g. Europe/Amsterdam in September -> +120). undefined when the zone
-// string is invalid. DST-aware — callers should note the value can differ
+// string is invalid. DST-aware , callers should note the value can differ
 // across dates near a transition.
 export function getTimeZoneOffsetMinutes(
   timeZone: string,

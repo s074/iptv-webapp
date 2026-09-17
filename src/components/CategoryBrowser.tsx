@@ -193,7 +193,7 @@ function CategoryBrowserInner<T>(props: CategoryBrowserProps<T>) {
         />
       </Box>
 
-      {/* Category picker modal — handles very long lists */}
+      {/* Category picker modal , handles very long lists */}
       <Dialog
         open={pickerOpen}
         onClose={() => setPickerOpen(false)}

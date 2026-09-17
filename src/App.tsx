@@ -36,7 +36,7 @@ function App() {
   useEffect(() => {
     if (status === "needsLoad") {
       // loadApp validates the stored login, hydrates every slice in
-      // parallel, and only then flips status to "ready" — the loading
+      // parallel, and only then flips status to "ready" , the loading
       // screen covers the whole sequence.
       dispatch(loadApp())
         .unwrap()

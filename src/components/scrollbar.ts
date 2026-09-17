@@ -1,7 +1,7 @@
 import type { Theme } from "@mui/material/styles"
 import type { SystemStyleObject } from "@mui/system"
 
-// Shared ynotv-style thin scrollbar — spread into any scrollable `sx`.
+// Shared thin scrollbar , spread into any scrollable `sx`.
 // Theme-aware so the thumb stays visible in both dark and light mode.
 export const thinScrollbarSx: SystemStyleObject<Theme> = {
   scrollbarWidth: "thin",

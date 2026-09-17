@@ -23,7 +23,7 @@ export interface ChannelEpgProps {
 }
 
 // Xtream providers send epoch timestamps as strings ("1789608600").
-// Normalize to numbers up front — implicit coercion and strict checks
+// Normalize to numbers up front , implicit coercion and strict checks
 // like `now_playing === 1` silently fail on strings.
 const toEpochSeconds = (value: number | string | undefined): number | undefined => {
   if (value === undefined || value === null || value === "") return undefined
@@ -33,7 +33,7 @@ const toEpochSeconds = (value: number | string | undefined): number | undefined 
 
 // Helper to format time from timestamp or ISO string.
 // Wall-clock strings from Xtream ("2026-09-17 01:30:00") carry no zone
-// and are UTC — parsing them as local time would shift every listing
+// and are UTC , parsing them as local time would shift every listing
 // by the device's UTC offset. offsetMinutes corrects feeds whose epochs
 // are stamped off from the real broadcast (see services/epgTime.ts).
 const formatTime = (
@@ -320,7 +320,7 @@ export const ChannelEpgComponent: FC<ChannelEpgProps> = memo((props) => {
       </Box>
       )}
 
-      {/* Programs — horizontal scroll, thin scrollbar */}
+      {/* Programs , horizontal scroll, thin scrollbar */}
       <Box
         sx={{
           flex: 1,

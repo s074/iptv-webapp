@@ -109,7 +109,7 @@ export const isIos = (): boolean => {
   const ua = getUserAgent()
   if (/iPad|iPhone|iPod/i.test(ua)) return true
   if (typeof window === "undefined") return false
-  // iPadOS reports Macintosh — touch points tell it apart from a real Mac.
+  // iPadOS reports Macintosh , touch points tell it apart from a real Mac.
   const nav = navigator as Navigator & {
     userAgentData?: { platform?: string }
     platform?: string
@@ -118,13 +118,13 @@ export const isIos = (): boolean => {
   return /mac/i.test(platform) && navigator.maxTouchPoints > 1
 }
 
-// VLC only registers its URL handler on Android and iOS — desktop builds
+// VLC only registers its URL handler on Android and iOS , desktop builds
 // don't handle vlc:// links, so the "Open in VLC" button is gated to these.
 export const isVlcPlatform = (): boolean => isAndroid() || isIos()
 
 export const buildVlcUrl = (mediaUrl: string): string => {
   // Per https://wiki.videolan.org/Documentation:IOS/ :
-  // vlc-x-callback://x-callback-url/ACTION?url=... — `stream` plays the
+  // vlc-x-callback://x-callback-url/ACTION?url=... , `stream` plays the
   // stream from the URL parameter (x-success/x-error optional). The inner
   // URL is percent-encoded per the x-callback-url spec.
   if (isIos()) {

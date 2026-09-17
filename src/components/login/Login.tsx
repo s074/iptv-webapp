@@ -65,7 +65,7 @@ export const Login: React.FC = () => {
     try {
       await dispatch(fetchAccountInfo({ config })).unwrap()
     } catch (e) {
-      setError("Could not log in to the Xtream server — check the URL and credentials")
+      setError("Could not log in to the Xtream server , check the URL and credentials")
       setStatus("idle")
       return
     }
