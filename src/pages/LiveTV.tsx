@@ -35,7 +35,7 @@ import {
   formatOffsetLabel,
   useEpgOffsetMinutes,
 } from "../services/epgTime"
-import { containerToMimeType } from "../services/utils"
+import { containerToMimeType, streamBelongsToCategory } from "../services/utils"
 import videojs from "video.js"
 import Player from "video.js/dist/types/player"
 import { VideoPlayer } from "../components/VideoPlayer"
@@ -144,16 +144,18 @@ export const LiveTV: FC = () => {
   const categoryCounts = useMemo(() => {
     const map = new Map<string, number>()
     for (const stream of liveStreams) {
-      if (stream.category_id !== undefined) {
-        const key = String(stream.category_id)
-        map.set(key, (map.get(key) ?? 0) + 1)
-      }
+      // Count every category membership once (primary + secondaries).
+      const ids = new Set<string>()
+      if (stream.category_id !== undefined) ids.add(String(stream.category_id))
+      for (const id of stream.category_ids ?? []) ids.add(String(id))
+      for (const key of ids) map.set(key, (map.get(key) ?? 0) + 1)
     }
     return map
   }, [liveStreams])
 
-  const categoryLiveStreams = useMemo(() => {    const inCategory = liveStreams.filter(
-      (stream) => stream.category_id === selectedCategory?.category_id,
+  const categoryLiveStreams = useMemo(() => {
+    const inCategory = liveStreams.filter((stream) =>
+      streamBelongsToCategory(stream, selectedCategory?.category_id),
     )
     const q = channelFilter.trim().toLocaleLowerCase()
     if (!q) return inCategory

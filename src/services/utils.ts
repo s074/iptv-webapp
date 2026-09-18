@@ -39,6 +39,15 @@ export const isLive = (
   return liveStream.stream_type === "live" && liveStream.stream_id !== undefined
 }
 
+export const streamBelongsToCategory = (
+  stream: { category_id?: number | string; category_ids?: (number | string)[] },
+  categoryId: number | string | undefined,
+): boolean => {
+  if (categoryId === undefined) return false
+  if (stream.category_id === categoryId) return true
+  return stream.category_ids?.some((id) => id === categoryId) ?? false
+}
+
 export const containerToMimeType = (container: string): string => {
   switch (container) {
     case "mkv":

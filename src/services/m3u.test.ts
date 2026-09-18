@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest"
 import { hashStreamId, m3uToLiveChannels, parseM3U } from "./m3u"
+import { streamBelongsToCategory } from "./utils"
 
 const SAMPLE = `#EXTM3U
 #EXTINF:-1 tvg-id="KETV.us" tvg-name="ABC 7" tvg-logo="http://x/logo.png" group-title="US | News",ABC 7 Omaha
@@ -34,12 +35,49 @@ describe("parseM3U", () => {
     expect(() => parseM3U("#EXTM3U\n#EXTINF:-1,Foo\n")).toThrow()
   })
 
+  it("rejects HLS stream playlists instead of parsing segments as channels", () => {
+    const mediaPlaylist = [
+      "#EXTM3U",
+      "#EXT-X-VERSION:3",
+      "#EXT-X-TARGETDURATION:8",
+      "#EXT-X-MEDIA-SEQUENCE:0",
+      "#EXTINF:6.006,",
+      "segment0.ts",
+      "#EXTINF:6.006,",
+      "segment1.ts",
+      "#EXT-X-ENDLIST",
+    ].join("\n")
+    expect(() => parseM3U(mediaPlaylist)).toThrow(/not a channel list/)
+    const masterPlaylist = [
+      "#EXTM3U",
+      "#EXT-X-STREAM-INF:BANDWIDTH=800000,RESOLUTION=640x360",
+      "low.m3u8",
+    ].join("\n")
+    expect(() => parseM3U(masterPlaylist)).toThrow(/not a channel list/)
+  })
+
   it("resolves relative URLs against a base", () => {
     const entries = parseM3U(
       "#EXTM3U\n#EXTINF:-1,Rel\n/stream/1.m3u8\n",
       "http://server:8080/list.m3u",
     )
     expect(entries[0].url).toBe("http://server:8080/stream/1.m3u8")
+  })
+
+  it("treats ';' groups as multi-category membership", () => {
+    const entries = parseM3U(
+      '#EXTM3U\n#EXTINF:-1 group-title="News;Sports",Multi\nhttp://s/1.m3u8\n',
+    )
+    expect(entries[0].groups).toEqual(["News", "Sports"])
+    const { categories, streams } = m3uToLiveChannels(entries)
+    expect(categories.map((c) => c.category_name)).toEqual(["News", "Sports"])
+    expect(streams[0].category_ids).toHaveLength(2)
+    // visible under both categories
+    const newsId = categories[0].category_id!
+    const sportsId = categories[1].category_id!
+    expect(streamBelongsToCategory(streams[0], newsId)).toBe(true)
+    expect(streamBelongsToCategory(streams[0], sportsId)).toBe(true)
+    expect(streamBelongsToCategory(streams[0], "m3u:99")).toBe(false)
   })
 })
 

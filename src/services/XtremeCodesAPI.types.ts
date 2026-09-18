@@ -48,7 +48,7 @@ export interface Category {
 export interface Stream {
   added?: number
   category_id?: number | string
-  category_ids?: number[]
+  category_ids?: (number | string)[]
   custom_sid?: string
   direct_source?: string
   is_adult?: number
@@ -75,7 +75,7 @@ export interface VodStream extends Stream {
 
 export interface SeriesStream {
   category_id?: number | string
-  category_ids?: number[]
+  category_ids?: (number | string)[]
   num?: number
   name?: string
   series_id?: number
@@ -140,8 +140,8 @@ export interface SeriesInfo {
     tmdb?: number
     youtube_trailer?: string
     episode_run_time?: number
-    category_id?: number
-    category_ids?: number[]
+    category_id?: number | string
+    category_ids?: (number | string)[]
   }
   episodes?: { [key: string]: SeriesEpisode[] }
 }
