@@ -13,4 +13,5 @@ export const STORAGE_KEY = {
   EXT_EPG_OFFSETS: "extEpgOffsets",
   WATCHLIST: "watchlist",
   FAVORITES: "favorites",
+  HIDDEN_CATEGORIES: "hiddenCategories",
 }

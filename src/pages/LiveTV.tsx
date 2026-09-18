@@ -1,6 +1,7 @@
 import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useAppDispatch, useAppSelector } from "../store/hooks"
 import { selectLiveCategories, selectLiveStreams, selectFavorites } from "../store/live/liveSlice"
+import { selectHiddenLive } from "../store/hiddenCategories/hiddenCategoriesSlice"
 import { fetchBulkEpgAsync, selectBulkEpgStatus } from "../store/live/liveSlice"
 import { fetchExternalEpgAsync, selectExternalEpg } from "../store/live/liveSlice"
 import { getExternalEpgUrls } from "../services/externalEpg"
@@ -98,6 +99,7 @@ export const LiveTV: FC = () => {
   const liveStreams = useAppSelector(selectLiveStreams)
   const liveStreamCategories = useAppSelector(selectLiveCategories)
   const favorites = useAppSelector(selectFavorites)
+  const hiddenLive = useAppSelector(selectHiddenLive)
   const isXtream = useAppSelector(selectIsXtreamSource)
   const externalEpg = useAppSelector(selectExternalEpg)
   const bulkEpgStatus = useAppSelector(selectBulkEpgStatus)
@@ -217,19 +219,39 @@ export const LiveTV: FC = () => {
     [],
   )
 
+  // Hidden categories vanish from the picker; if the selected one gets
+  // hidden elsewhere, fall back to the first visible instead of an empty
+  // guide. Favorites bypass the filter (synthetic, never hideable).
+  const visibleCategories = useMemo(
+    () =>
+      liveStreamCategories.filter(
+        (c) => !hiddenLive.includes(String(c.category_id)),
+      ),
+    [liveStreamCategories, hiddenLive],
+  )
+
+  const effectiveCategory =
+    selectedCategory?.category_id === FAVORITES_CATEGORY_ID
+      ? selectedCategory
+      : visibleCategories.some(
+          (c) => c.category_id === selectedCategory?.category_id,
+        )
+        ? selectedCategory
+        : visibleCategories[0]
+
   const categoryLiveStreams = useMemo(() => {
     const inCategory =
-      selectedCategory?.category_id === FAVORITES_CATEGORY_ID
+      effectiveCategory?.category_id === FAVORITES_CATEGORY_ID
         ? favoriteStreams
         : liveStreams.filter((stream) =>
-            streamBelongsToCategory(stream, selectedCategory?.category_id),
+            streamBelongsToCategory(stream, effectiveCategory?.category_id),
           )
     const q = channelFilter.trim().toLocaleLowerCase()
     if (!q) return inCategory
     return inCategory.filter((s) =>
       s.name?.toLocaleLowerCase().includes(q),
     )
-  }, [liveStreams, selectedCategory, channelFilter])
+  }, [liveStreams, effectiveCategory, favoriteStreams, channelFilter])
 
   // The zone all EPG wall times are rendered in (device OS setting).
   const deviceTimeZone = useMemo(
@@ -239,11 +261,11 @@ export const LiveTV: FC = () => {
 
   const filteredCategories = useMemo(() => {
     const q = catQuery.trim().toLocaleLowerCase()
-    if (!q) return liveStreamCategories
-    return liveStreamCategories.filter((c) =>
+    if (!q) return visibleCategories
+    return visibleCategories.filter((c) =>
       c.category_name?.toLocaleLowerCase().includes(q),
     )
-  }, [liveStreamCategories, catQuery])
+  }, [visibleCategories, catQuery])
 
   const pickCategory = useCallback((category: Category) => {
     setSelectedCategory(category)
@@ -378,7 +400,7 @@ export const LiveTV: FC = () => {
           }}
         >
           <Typography variant="body2" noWrap sx={{ fontWeight: 600 }}>
-            {selectedCategory?.category_name ?? "Categories"}
+            {effectiveCategory?.category_name ?? "Categories"}
           </Typography>
         </Button>
         <Typography variant="caption" color="text.secondary" sx={{ fontVariantNumeric: "tabular-nums" }}>
@@ -440,14 +462,14 @@ export const LiveTV: FC = () => {
               <Typography variant="h6" color="text.primary">
                 {channelFilter
                   ? "No channels match"
-                  : selectedCategory?.category_id === FAVORITES_CATEGORY_ID
+                  : effectiveCategory?.category_id === FAVORITES_CATEGORY_ID
                     ? "No favorites yet"
                     : "No channels"}
               </Typography>
               <Typography variant="body2">
                 {channelFilter
                   ? "Try a different filter."
-                  : selectedCategory?.category_id === FAVORITES_CATEGORY_ID
+                  : effectiveCategory?.category_id === FAVORITES_CATEGORY_ID
                     ? "Add channels to favorites from their info dialog to pin them here."
                     : "Pick another category."}
               </Typography>
@@ -520,7 +542,7 @@ export const LiveTV: FC = () => {
           <Box sx={{ px: 1, pt: 1 }}>
             <ListItem disablePadding>
               <ListItemButton
-                selected={selectedCategory?.category_id === FAVORITES_CATEGORY_ID}
+                selected={effectiveCategory?.category_id === FAVORITES_CATEGORY_ID}
                 onClick={() => pickCategory(favoritesCategory)}
                 sx={{
                   borderRadius: 2,
@@ -534,7 +556,7 @@ export const LiveTV: FC = () => {
                 <StarRoundedIcon
                   fontSize="small"
                   color={
-                    selectedCategory?.category_id === FAVORITES_CATEGORY_ID
+                    effectiveCategory?.category_id === FAVORITES_CATEGORY_ID
                       ? "primary"
                       : "disabled"
                   }
@@ -548,7 +570,7 @@ export const LiveTV: FC = () => {
                       variant: "body2",
                       sx: {
                         fontWeight:
-                          selectedCategory?.category_id === FAVORITES_CATEGORY_ID
+                          effectiveCategory?.category_id === FAVORITES_CATEGORY_ID
                             ? 600
                             : 400,
                       },
@@ -558,7 +580,7 @@ export const LiveTV: FC = () => {
                 <Badge
                   badgeContent={favoriteStreams.length}
                   color={
-                    selectedCategory?.category_id === FAVORITES_CATEGORY_ID
+                    effectiveCategory?.category_id === FAVORITES_CATEGORY_ID
                       ? "primary"
                       : "default"
                   }
@@ -580,7 +602,7 @@ export const LiveTV: FC = () => {
                 computeItemKey={(_, c) => c.category_id ?? c.category_name ?? Math.random()}
                 components={{ Scroller: PickerScroller }}
                 itemContent={(_, category) => {
-                  const selected = category === selectedCategory
+                  const selected = category.category_id === effectiveCategory?.category_id
                   return (
                     <ListItem disablePadding sx={{ px: 1 }}>
                       <ListItemButton
@@ -626,7 +648,7 @@ export const LiveTV: FC = () => {
           </Box>
           <Box sx={{ px: 2, py: 1, borderTop: "1px solid", borderColor: "divider" }}>
             <Typography variant="caption" color="text.secondary">
-              {filteredCategories.length} of {liveStreamCategories.length} categories
+              {filteredCategories.length} of {visibleCategories.length} categories
             </Typography>
           </Box>
         </DialogContent>

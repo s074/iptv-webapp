@@ -30,6 +30,11 @@ import {
   type GuideProgress,
 } from "../services/externalEpg"
 import { EpgOffsetControls } from "../components/EpgOffsetControls"
+import { HideCategoriesModal } from "../components/HideCategoriesModal"
+import {
+  HiddenCategoryType,
+  selectHiddenCategories,
+} from "../store/hiddenCategories/hiddenCategoriesSlice"
 import { thinScrollbarSx } from "../components/scrollbar"
 
 export const Settings: FC = () => {
@@ -41,6 +46,11 @@ export const Settings: FC = () => {
   const externalEpg = useAppSelector(selectExternalEpg)
   const externalStatus = useAppSelector(selectExternalEpgStatus)
   const externalError = useAppSelector(selectExternalEpgError)
+  const hidden = useAppSelector(selectHiddenCategories)
+  const [hideModal, setHideModal] = useState<{
+    type: HiddenCategoryType
+    label: string
+  } | null>(null)
 
   useEffect(() => {
     getExternalEpgUrls().then(setSavedUrls)
@@ -101,6 +111,38 @@ export const Settings: FC = () => {
           <Card sx={{ borderRadius: 3, border: "1px solid", borderColor: "divider" }}>
             <CardContent>
               <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                Manage hidden categories
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                Hidden categories disappear from browsers and the guide.
+                Stored on this device like watchlist and favorites.
+              </Typography>
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={1} sx={{ mt: 1.5 }}>
+                {(
+                  [
+                    { type: "live", label: "Live TV categories" },
+                    { type: "vod", label: "Movies categories" },
+                    { type: "series", label: "TV Shows categories" },
+                  ] as { type: HiddenCategoryType; label: string }[]
+                ).map(({ type, label }) => (
+                  <Button
+                    key={type}
+                    variant="outlined"
+                    onClick={() => setHideModal({ type, label })}
+                  >
+                    {label}
+                    {hidden[type].length > 0 && ` (${hidden[type].length} hidden)`}
+                  </Button>
+                ))}
+              </Stack>
+            </CardContent>
+          </Card>
+        </Box>
+
+        <Box sx={{ px: 1, pb: 2 }}>
+          <Card sx={{ borderRadius: 3, border: "1px solid", borderColor: "divider" }}>
+            <CardContent>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
                 EPG time correction
               </Typography>
               <Box sx={{ mt: 1 }}>
@@ -109,6 +151,15 @@ export const Settings: FC = () => {
             </CardContent>
           </Card>
         </Box>
+
+        {hideModal && (
+          <HideCategoriesModal
+            open={true}
+            onClose={() => setHideModal(null)}
+            type={hideModal.type}
+            title={hideModal.label}
+          />
+        )}
 
         <Box sx={{ px: 1 }}>
           <Card sx={{ borderRadius: 3, border: "1px solid", borderColor: "divider" }}>

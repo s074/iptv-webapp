@@ -19,6 +19,7 @@ import {
   setLiveStreams,
 } from "../live/liveSlice"
 import { loadWatchlistAsync } from "../watchlist/watchlistSlice"
+import { loadHiddenCategoriesAsync } from "../hiddenCategories/hiddenCategoriesSlice"
 import { MediaSource } from "../types"
 import { Category, LiveStream } from "../../services/XtremeCodesAPI.types"
 import { hydrateEpgOffsets } from "../../services/epgTime"
@@ -78,6 +79,7 @@ export const loadApp = createAsyncThunk<
     // this completes, so the loading screen covers the full load.
     await Promise.allSettled([
       thunkAPI.dispatch(loadWatchlistAsync()),
+      thunkAPI.dispatch(loadHiddenCategoriesAsync()),
       thunkAPI.dispatch(loadSeriesFromLocalStorageAsync()),
       thunkAPI.dispatch(loadVodFromLocalStorageAsync()),
       thunkAPI.dispatch(loadLiveFromLocalStorageAsync()),
@@ -132,6 +134,7 @@ async function loadM3USource(
 
   await Promise.allSettled([
     thunkAPI.dispatch(loadWatchlistAsync()),
+    thunkAPI.dispatch(loadHiddenCategoriesAsync()),
     thunkAPI.dispatch(loadFavoritesAsync()),
   ])
 

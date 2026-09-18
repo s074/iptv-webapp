@@ -76,7 +76,14 @@ function CategoryBrowserInner<T>(props: CategoryBrowserProps<T>) {
   const [selectedId, setSelectedId] = useState<string | undefined>(
     selectedCategoryId ?? categories[0]?.id,
   )
-  const activeId = selectedCategoryId ?? selectedId
+  // The category list can shrink under us (e.g. hiding the active
+  // category in Settings) — fall back to the first visible one instead
+  // of rendering an empty grid for a stale id.
+  const activeId = categories.some(
+    (c) => c.id === (selectedCategoryId ?? selectedId),
+  )
+    ? (selectedCategoryId ?? selectedId)
+    : categories[0]?.id
   const theme = useTheme()
   const fullScreenPicker = useMediaQuery(theme.breakpoints.down("sm"))
 

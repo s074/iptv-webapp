@@ -4,22 +4,26 @@ import { useAppSelector } from "../store/hooks"
 import { VodStream } from "../services/XtremeCodesAPI.types"
 import { MediaInfoModal } from "../components/MediaInfoModal"
 import { MediaCard } from "../components/MediaCard"
+import { selectHiddenVod } from "../store/hiddenCategories/hiddenCategoriesSlice"
 import { CategoryBrowser } from "../components/CategoryBrowser"
 
 export const Movies: FC = () => {
   const vodCategories = useAppSelector(selectVodCategories)
   const vodStreams = useAppSelector(selectVodStreams)
+  const hiddenVod = useAppSelector(selectHiddenVod)
   const [currentMovie, setCurrentMovie] = useState<VodStream | undefined>(
     undefined,
   )
 
   const categories = useMemo(
     () =>
-      vodCategories.map((c) => ({
-        id: String(c.category_id),
-        name: c.category_name ?? "Unknown",
-      })),
-    [vodCategories],
+      vodCategories
+        .map((c) => ({
+          id: String(c.category_id),
+          name: c.category_name ?? "Unknown",
+        }))
+        .filter((c) => !hiddenVod.includes(c.id)),
+    [vodCategories, hiddenVod],
   )
 
   return (
