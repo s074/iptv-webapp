@@ -1,6 +1,6 @@
 import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useAppDispatch, useAppSelector } from "../store/hooks"
-import { selectLiveCategories, selectLiveStreams } from "../store/live/liveSlice"
+import { selectLiveCategories, selectLiveStreams, selectFavorites } from "../store/live/liveSlice"
 import { fetchBulkEpgAsync, selectBulkEpgStatus } from "../store/live/liveSlice"
 import { fetchExternalEpgAsync, selectExternalEpg } from "../store/live/liveSlice"
 import { getExternalEpgUrls } from "../services/externalEpg"
@@ -30,6 +30,7 @@ import FolderRoundedIcon from "@mui/icons-material/FolderRounded"
 import CheckRoundedIcon from "@mui/icons-material/CheckRounded"
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded"
 import ScheduleRoundedIcon from "@mui/icons-material/ScheduleRounded"
+import StarRoundedIcon from "@mui/icons-material/StarRounded"
 import KeyboardArrowDownRoundedIcon from "@mui/icons-material/KeyboardArrowDownRounded"
 import Tooltip from "@mui/material/Tooltip"
 import { glassDialogSlotProps } from "../components/glassDialog"
@@ -89,9 +90,14 @@ const PickerScroller = forwardRef<
 ))
 PickerScroller.displayName = "PickerScroller"
 
+// Synthetic category holding favorited channels. String-namespaced like
+// M3U ids so it can never collide with provider numeric ids.
+const FAVORITES_CATEGORY_ID = "__favorites"
+
 export const LiveTV: FC = () => {
   const liveStreams = useAppSelector(selectLiveStreams)
   const liveStreamCategories = useAppSelector(selectLiveCategories)
+  const favorites = useAppSelector(selectFavorites)
   const isXtream = useAppSelector(selectIsXtreamSource)
   const externalEpg = useAppSelector(selectExternalEpg)
   const bulkEpgStatus = useAppSelector(selectBulkEpgStatus)
@@ -196,10 +202,28 @@ export const LiveTV: FC = () => {
     return map
   }, [liveStreams])
 
+  // Favorites resolve against the live list so every row stays playable.
+  // String-compared: Xtream panels mix numeric and string ids on the wire.
+  const favoriteStreams = useMemo(() => {
+    const ids = new Set(favorites.map((fav) => String(fav.stream_id)))
+    return liveStreams.filter((stream) => ids.has(String(stream.stream_id)))
+  }, [favorites, liveStreams])
+
+  const favoritesCategory: Category = useMemo(
+    () => ({
+      category_id: FAVORITES_CATEGORY_ID,
+      category_name: "Favorites",
+    }),
+    [],
+  )
+
   const categoryLiveStreams = useMemo(() => {
-    const inCategory = liveStreams.filter((stream) =>
-      streamBelongsToCategory(stream, selectedCategory?.category_id),
-    )
+    const inCategory =
+      selectedCategory?.category_id === FAVORITES_CATEGORY_ID
+        ? favoriteStreams
+        : liveStreams.filter((stream) =>
+            streamBelongsToCategory(stream, selectedCategory?.category_id),
+          )
     const q = channelFilter.trim().toLocaleLowerCase()
     if (!q) return inCategory
     return inCategory.filter((s) =>
@@ -414,12 +438,18 @@ export const LiveTV: FC = () => {
               }}
             >
               <Typography variant="h6" color="text.primary">
-                {channelFilter ? "No channels match" : "No channels"}
+                {channelFilter
+                  ? "No channels match"
+                  : selectedCategory?.category_id === FAVORITES_CATEGORY_ID
+                    ? "No favorites yet"
+                    : "No channels"}
               </Typography>
               <Typography variant="body2">
                 {channelFilter
                   ? "Try a different filter."
-                  : "Pick another category."}
+                  : selectedCategory?.category_id === FAVORITES_CATEGORY_ID
+                    ? "Add channels to favorites from their info dialog to pin them here."
+                    : "Pick another category."}
               </Typography>
             </Box>
           ) : (
@@ -486,8 +516,59 @@ export const LiveTV: FC = () => {
               }}
             />
           </Box>
+          {/* Favorites stays pinned at the top, above the searchable list. */}
+          <Box sx={{ px: 1, pt: 1 }}>
+            <ListItem disablePadding>
+              <ListItemButton
+                selected={selectedCategory?.category_id === FAVORITES_CATEGORY_ID}
+                onClick={() => pickCategory(favoritesCategory)}
+                sx={{
+                  borderRadius: 2,
+                  border: "1px solid transparent",
+                  "&.Mui-selected": {
+                    bgcolor: "rgba(0, 212, 255, 0.12)",
+                    borderColor: "rgba(0,212,255,0.35)",
+                  },
+                }}
+              >
+                <StarRoundedIcon
+                  fontSize="small"
+                  color={
+                    selectedCategory?.category_id === FAVORITES_CATEGORY_ID
+                      ? "primary"
+                      : "disabled"
+                  }
+                  sx={{ mr: 1 }}
+                />
+                <ListItemText
+                  primary="Favorites"
+                  slotProps={{
+                    primary: {
+                      noWrap: true,
+                      variant: "body2",
+                      sx: {
+                        fontWeight:
+                          selectedCategory?.category_id === FAVORITES_CATEGORY_ID
+                            ? 600
+                            : 400,
+                      },
+                    },
+                  }}
+                />
+                <Badge
+                  badgeContent={favoriteStreams.length}
+                  color={
+                    selectedCategory?.category_id === FAVORITES_CATEGORY_ID
+                      ? "primary"
+                      : "default"
+                  }
+                  sx={{ ml: 1, "& .MuiBadge-badge": { fontSize: 10 } }}
+                />
+              </ListItemButton>
+            </ListItem>
+          </Box>
           <Box sx={{ height: fullScreenPicker ? "100%" : 420, minHeight: 0 }}>
-            {filteredCategories.length === 0 ? (
+            {filteredCategories.length === 0 && favoriteStreams.length === 0 ? (
               <Box sx={{ p: 3, textAlign: "center" }}>
                 <Typography variant="body2" color="text.secondary">
                   No categories match “{catQuery}”.

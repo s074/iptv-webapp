@@ -1,4 +1,4 @@
-import { FC, memo, useMemo } from "react"
+import { FC, memo, useMemo, useState } from "react"
 import {
   LiveStream,
   LiveStreamEPG,
@@ -7,11 +7,22 @@ import {
 import Box from "@mui/material/Box"
 import Typography from "@mui/material/Typography"
 import Chip from "@mui/material/Chip"
+import Menu from "@mui/material/Menu"
+import MenuItem from "@mui/material/MenuItem"
+import ListItemIcon from "@mui/material/ListItemIcon"
 import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded"
 import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded"
 import LiveTvRoundedIcon from "@mui/icons-material/LiveTvRounded"
+import StarRoundedIcon from "@mui/icons-material/StarRounded"
+import StarBorderRoundedIcon from "@mui/icons-material/StarBorderRounded"
 import { b64DecodeUnicode } from "../services/utils"
 import { useEpgOffsets } from "../services/epgTime"
+import { useAppDispatch, useAppSelector } from "../store/hooks"
+import {
+  addToFavorites,
+  removeFromFavorites,
+  selectFavorites,
+} from "../store/live/liveSlice"
 
 export interface ChannelEpgProps {
   epg: LiveStreamEPG | undefined
@@ -219,6 +230,39 @@ EpgItem.displayName = "EpgItem"
 export const ChannelEpgComponent: FC<ChannelEpgProps> = memo((props) => {
   const { epg, stream, onStreamClick, selected, hideChannelInfo = false } = props
   const offsets = useEpgOffsets()
+  const dispatch = useAppDispatch()
+  const favorites = useAppSelector(selectFavorites)
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null)
+
+  const isFavorite = favorites.some(
+    (fav) => String(fav.stream_id) === String(stream.stream_id),
+  )
+
+  const handleContextMenu = (event: React.MouseEvent) => {
+    event.preventDefault()
+    setContextMenu({ x: event.clientX, y: event.clientY })
+  }
+
+  const handleToggleFavorite = (event: React.MouseEvent) => {
+    // The menu lives in a portal: without this, the click bubbles through
+    // the React tree into the row's onClick and plays the channel.
+    event.stopPropagation()
+    if (isFavorite) dispatch(removeFromFavorites(stream))
+    else dispatch(addToFavorites(stream))
+    setContextMenu(null)
+  }
+
+  const handleMenuClose = (
+    event: object,
+    reason: "backdropClick" | "escapeKeyDown",
+  ) => {
+    // Same portal bubbling as above: a dismiss click on the backdrop would
+    // otherwise reach the row and play the channel.
+    if (reason === "backdropClick") {
+      ;(event as unknown as { stopPropagation?: () => void }).stopPropagation?.()
+    }
+    setContextMenu(null)
+  }
 
   // Sort EPG listings by start time and filter to reasonable window.
   // Both steps use per-listing corrected epochs: sources can carry
@@ -251,6 +295,7 @@ export const ChannelEpgComponent: FC<ChannelEpgProps> = memo((props) => {
   return (
     <Box
       onClick={() => onStreamClick(stream)}
+      onContextMenu={handleContextMenu}
       sx={{
         display: "flex",
         alignItems: "stretch",
@@ -288,6 +333,7 @@ export const ChannelEpgComponent: FC<ChannelEpgProps> = memo((props) => {
         sx={{
           width: { xs: 180, sm: 264 },
           flexShrink: 0,
+          position: "relative",
           display: "flex",
           alignItems: "center",
           gap: 1.5,
@@ -296,6 +342,18 @@ export const ChannelEpgComponent: FC<ChannelEpgProps> = memo((props) => {
           borderRight: "1px solid rgba(255,255,255,0.06)",
         }}
       >
+        {isFavorite && (
+          <StarRoundedIcon
+            fontSize="small"
+            sx={{
+              position: "absolute",
+              top: 2,
+              left: 2,
+              color: "#ffd54f",
+              filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.6))",
+            }}
+          />
+        )}
         <Box
           sx={{
             width: 42,
@@ -372,6 +430,25 @@ export const ChannelEpgComponent: FC<ChannelEpgProps> = memo((props) => {
           </Box>
         )}
       </Box>
+      <Menu
+        open={contextMenu !== null}
+        onClose={handleMenuClose}
+        anchorReference="anchorPosition"
+        anchorPosition={
+          contextMenu ? { top: contextMenu.y, left: contextMenu.x } : undefined
+        }
+      >
+        <MenuItem onClick={handleToggleFavorite}>
+          <ListItemIcon>
+            {isFavorite ? (
+              <StarRoundedIcon fontSize="small" color="primary" />
+            ) : (
+              <StarBorderRoundedIcon fontSize="small" />
+            )}
+          </ListItemIcon>
+          {isFavorite ? "Remove from favorites" : "Add to favorites"}
+        </MenuItem>
+      </Menu>
     </Box>
   )
 })
