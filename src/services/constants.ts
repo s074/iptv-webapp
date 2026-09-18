@@ -9,6 +9,8 @@ export const STORAGE_KEY = {
   SERIES_STREAMS: "seriesStreams",
   M3U_CHANNELS: "m3uChannels",
   M3U_CATEGORIES: "m3uCategories",
+  EXT_EPG_URLS: "extEpgUrls",
+  EXT_EPG_OFFSETS: "extEpgOffsets",
   WATCHLIST: "watchlist",
   FAVORITES: "favorites",
 }

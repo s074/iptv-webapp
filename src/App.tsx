@@ -24,6 +24,7 @@ import { WatchSeries } from "./pages/shows/WatchSeries"
 import { SearchInput } from "./components/SearchInput"
 import { SearchResults } from "./pages/SearchResults"
 import { Watchlist } from "./pages/Watchlist"
+import { Settings } from "./pages/Settings"
 
 import GroupRoundedIcon from "@mui/icons-material/GroupRounded"
 import MenuIcon from "@mui/icons-material/Menu"
@@ -93,12 +94,6 @@ function App() {
                 }}
               >
                 <ColorSchemeToggle />
-                <IconButton
-                  size="small"
-                  sx={{ display: { xs: "none", sm: "inline-flex" } }}
-                >
-                  <GroupRoundedIcon />
-                </IconButton>
               </Box>
             </Layout.Header>
             <Layout.Main>
@@ -111,6 +106,7 @@ function App() {
                 <Route path={urls.seriesWatch} element={<WatchSeries />} />
                 <Route path={urls.search} element={<SearchResults />} />
                 <Route path={urls.watchlist} element={<Watchlist />} />
+                <Route path={urls.settings} element={<Settings />} />
               </Routes>
             </Layout.Main>
           </Layout.Root>

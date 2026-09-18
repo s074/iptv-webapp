@@ -1,6 +1,9 @@
 import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { useAppSelector } from "../store/hooks"
+import { useAppDispatch, useAppSelector } from "../store/hooks"
 import { selectLiveCategories, selectLiveStreams } from "../store/live/liveSlice"
+import { fetchBulkEpgAsync, selectBulkEpgStatus } from "../store/live/liveSlice"
+import { fetchExternalEpgAsync, selectExternalEpg } from "../store/live/liveSlice"
+import { getExternalEpgUrls } from "../services/externalEpg"
 import { selectIsXtreamSource } from "../store/app/selector"
 import Box from "@mui/material/Box"
 import List from "@mui/material/List"
@@ -32,8 +35,10 @@ import Tooltip from "@mui/material/Tooltip"
 import { glassDialogSlotProps } from "../components/glassDialog"
 import { EpgOffsetDialog } from "../components/EpgOffsetDialog"
 import {
+  XTREAM_BULK_SOURCE_ID,
+  extEpgSourceId,
   formatOffsetLabel,
-  useEpgOffsetMinutes,
+  useEpgOffsets,
 } from "../services/epgTime"
 import { containerToMimeType, streamBelongsToCategory } from "../services/utils"
 import videojs from "video.js"
@@ -88,6 +93,9 @@ export const LiveTV: FC = () => {
   const liveStreams = useAppSelector(selectLiveStreams)
   const liveStreamCategories = useAppSelector(selectLiveCategories)
   const isXtream = useAppSelector(selectIsXtreamSource)
+  const externalEpg = useAppSelector(selectExternalEpg)
+  const bulkEpgStatus = useAppSelector(selectBulkEpgStatus)
+  const dispatch = useAppDispatch()
   const [selectedStream, setSelectedStream] = useState<LiveStream | undefined>(
     undefined,
   )
@@ -97,7 +105,18 @@ export const LiveTV: FC = () => {
   const [catPickerOpen, setCatPickerOpen] = useState(false)
   const [catQuery, setCatQuery] = useState("")
   const [epgDialogOpen, setEpgDialogOpen] = useState(false)
-  const epgOffsetMinutes = useEpgOffsetMinutes()
+  const epgOffsets = useEpgOffsets()
+  // Sources actually contributing listings right now: provider bulk in
+  // Xtream sessions plus every loaded external guide.
+  const activeCorrections = useMemo(() => {
+    const ids = externalEpg
+      ? Object.keys(externalEpg).map(extEpgSourceId)
+      : []
+    if (isXtream) ids.unshift(XTREAM_BULK_SOURCE_ID)
+    return ids
+      .map((id) => epgOffsets[id] ?? 0)
+      .filter((minutes) => minutes !== 0)
+  }, [epgOffsets, externalEpg, isXtream])
   const [channelFilter, setChannelFilter] = useState("")
   const [searchParams, setSearchParams] = useSearchParams()
   const playerRef = useRef<Player | null>(null)
@@ -106,6 +125,30 @@ export const LiveTV: FC = () => {
   const fullScreenPicker = useMediaQuery(theme.breakpoints.down("sm"))
 
   const channelId = searchParams.get("channel")
+
+  // First visit per mount: one provider bulk download replaces the old
+  // per-stream requests, plus any configured external guides missing
+  // from memory (refresh wipes memory; the URL list persists).
+  useEffect(() => {
+    let cancelled = false
+    if (isXtream && (bulkEpgStatus === "idle" || bulkEpgStatus === "error")) {
+      dispatch(fetchBulkEpgAsync())
+    }
+    getExternalEpgUrls().then((persisted) => {
+      if (cancelled) return
+      const loaded = new Set(Object.keys(externalEpg))
+      for (const url of persisted) {
+        if (!loaded.has(url)) {
+          dispatch(fetchExternalEpgAsync({ url }))
+        }
+      }
+    })
+    return () => {
+      cancelled = true
+    }
+    // Mount-only: the closure reads the store fresh on every visit.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dispatch])
 
   // Same selection logic as before , URL param drives the player
   useEffect(() => {
@@ -316,13 +359,14 @@ export const LiveTV: FC = () => {
         </Button>
         <Typography variant="caption" color="text.secondary" sx={{ fontVariantNumeric: "tabular-nums" }}>
           {categoryLiveStreams.length} channels · {deviceTimeZone}
-          {epgOffsetMinutes !== 0 && ` · EPG ${formatOffsetLabel(epgOffsetMinutes)}`}
+          {activeCorrections.length === 1 && ` · EPG ${formatOffsetLabel(activeCorrections[0])}`}
+          {activeCorrections.length > 1 && " · EPG custom"}
         </Typography>
-        {isXtream && (
+        {(isXtream || Object.keys(externalEpg).length > 0) && (
         <Tooltip title="Correct EPG time">
           <IconButton
             size="small"
-            color={epgOffsetMinutes !== 0 ? "primary" : "default"}
+            color={activeCorrections.length > 0 ? "primary" : "default"}
             onClick={() => setEpgDialogOpen(true)}
             aria-label="correct EPG time"
           >

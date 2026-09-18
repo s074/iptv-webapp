@@ -291,6 +291,13 @@ export interface LiveStreamEPGItem {
   id?: number | string
   epg_id?: number | string
   title?: string
+  // Xtream titles arrive base64-encoded; XMLTV titles are plain text and
+  // set this false so the decoder leaves them alone (short plain titles
+  // can otherwise false-positive as base64 and come out garbled).
+  titleEncoded?: boolean
+  // Guide source this listing was ingested from ("xtream:bulk",
+  // "ext:<url>") — selects its time correction. Absent = no correction.
+  sourceId?: string
   lang?: string
   start?: string
   end?: string

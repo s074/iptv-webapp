@@ -17,6 +17,7 @@ import {
 import { fetchSeriesCategoriesAsync, fetchSeriesStreamsAsync } from "../../store/series/seriesSlice"
 import { fetchVodCategoriesAsync, fetchVodStreamsAsync } from "../../store/vod/vodSlice"
 import { connectM3UPlaylist, fetchLiveCategoriesAsync, fetchLiveStreamsAsync } from "../../store/live/liveSlice"
+import { hydrateEpgOffsets } from "../../services/epgTime"
 import { MediaSource } from "../../store/types"
 
 type LoginMode = "xtream" | "m3u-url" | "m3u-file"
@@ -85,6 +86,7 @@ export const Login: React.FC = () => {
     setStatus("loading")
     dispatch(setApiConfig(config))
     dispatch(setMediaSource({ kind: "xtream" }))
+    await hydrateEpgOffsets()
     // load common app stuff
     try {
       await Promise.all([
@@ -114,6 +116,7 @@ export const Login: React.FC = () => {
 
     setStatus("loading")
     dispatch(setMediaSource(meta))
+    await hydrateEpgOffsets()
     dispatch(setAppStatus("ready"))
   }
 

@@ -11,7 +11,7 @@ import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded"
 import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded"
 import LiveTvRoundedIcon from "@mui/icons-material/LiveTvRounded"
 import { b64DecodeUnicode } from "../services/utils"
-import { useEpgOffsetMinutes } from "../services/epgTime"
+import { useEpgOffsets } from "../services/epgTime"
 
 export interface ChannelEpgProps {
   epg: LiveStreamEPG | undefined
@@ -88,9 +88,12 @@ const getProgress = (
   return 0
 }
 
-// Decode base64 title if needed (some EPG sources encode titles)
-const decodeTitle = (title?: string): string => {
+// Decode base64 title if needed (Xtream encodes titles; XMLTV does not,
+// those items set titleEncoded: false, since short plain titles can
+// otherwise false-positive as base64 and come out garbled).
+const decodeTitle = (title?: string, encoded?: boolean): string => {
   if (!title) return "Unknown Program"
+  if (encoded === false) return title
   try {
     const decodedTitle = b64DecodeUnicode(title);
     return decodedTitle;
@@ -101,7 +104,9 @@ const decodeTitle = (title?: string): string => {
 }
 
 const EpgItem: FC<{ item: LiveStreamEPGItem }> = memo(({ item }) => {
-  const offsetMinutes = useEpgOffsetMinutes()
+  // Each listing carries its guide source; corrections are per-source.
+  const offsets = useEpgOffsets()
+  const offsetMinutes = item.sourceId ? (offsets[item.sourceId] ?? 0) : 0
   const nowSec = Date.now() / 1000
   const rawStart = toEpochSeconds(item.start_timestamp)
   const rawStop = toEpochSeconds(item.stop_timestamp)
@@ -117,7 +122,7 @@ const EpgItem: FC<{ item: LiveStreamEPGItem }> = memo(({ item }) => {
       start < nowSec &&
       stop > nowSec)
   const progress = getProgress(item, offsetMinutes)
-  const title = decodeTitle(item.title)
+  const title = decodeTitle(item.title, item.titleEncoded)
 
   return (
     <Box
@@ -213,28 +218,35 @@ EpgItem.displayName = "EpgItem"
 
 export const ChannelEpgComponent: FC<ChannelEpgProps> = memo((props) => {
   const { epg, stream, onStreamClick, selected, hideChannelInfo = false } = props
-  const offsetMinutes = useEpgOffsetMinutes()
+  const offsets = useEpgOffsets()
 
-  // Sort EPG listings by start time and filter to reasonable window
+  // Sort EPG listings by start time and filter to reasonable window.
+  // Both steps use per-listing corrected epochs: sources can carry
+  // different corrections, so raw epochs are neither comparable across
+  // sources nor anchored to absolute time.
   const sortedListings = useMemo(() => {
     if (!epg?.epg_listings?.length) return []
     const now = Date.now() / 1000
+    const correctedStart = (item: LiveStreamEPGItem): number => {
+      const raw = toEpochSeconds(item.start_timestamp) ?? 0
+      const offset = item.sourceId ? (offsets[item.sourceId] ?? 0) : 0
+      return raw + offset * 60
+    }
+    const correctedStop = (item: LiveStreamEPGItem): number | undefined => {
+      const raw = toEpochSeconds(item.stop_timestamp)
+      if (raw === undefined) return undefined
+      const offset = item.sourceId ? (offsets[item.sourceId] ?? 0) : 0
+      return raw + offset * 60
+    }
     return [...epg.epg_listings]
       .filter((item) => {
         // Show items that haven't ended yet or ended within the last hour
-        const rawEnd = toEpochSeconds(item.stop_timestamp)
-        const end = rawEnd === undefined ? Infinity : rawEnd + offsetMinutes * 60
+        const end = correctedStop(item) ?? Infinity
         return end > now - 3600
       })
-      .sort((a, b) => {
-        // Offset shifts every listing equally, so raw epochs sort identically
-        return (
-          (toEpochSeconds(a.start_timestamp) ?? 0) -
-          (toEpochSeconds(b.start_timestamp) ?? 0)
-        )
-      })
+      .sort((a, b) => correctedStart(a) - correctedStart(b))
       .slice(0, 10) // Limit to 10 items for performance
-  }, [epg?.epg_listings, offsetMinutes])
+  }, [epg?.epg_listings, offsets])
 
   return (
     <Box

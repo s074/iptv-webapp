@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest"
+import { gzipSync } from "node:zlib"
 import { hashStreamId, m3uToLiveChannels, parseM3U } from "./m3u"
+import { decodeGuidePayload } from "./externalEpg"
 import { streamBelongsToCategory } from "./utils"
 
 const SAMPLE = `#EXTM3U
@@ -99,5 +101,36 @@ describe("m3uToLiveChannels", () => {
       streams.map((s) => s.stream_id),
     )
     expect(hashStreamId("http://a")).toBe(hashStreamId("http://a"))
+  })
+})
+
+describe("decodeGuidePayload", () => {
+  const xml = '<?xml version="1.0"?><tv><channel id="a.us"/></tv>'
+
+  it("passes plain XML through", async () => {
+    const buffer = new TextEncoder().encode(xml).buffer as ArrayBuffer
+    await expect(decodeGuidePayload(buffer, "https://x/guide.xml")).resolves.toBe(xml)
+  })
+
+  it("decompresses .gz by extension", async () => {
+    const gzipped = gzipSync(xml)
+    const buffer = gzipped.buffer.slice(
+      gzipped.byteOffset,
+      gzipped.byteOffset + gzipped.byteLength,
+    ) as ArrayBuffer
+    await expect(
+      decodeGuidePayload(buffer, "https://iptv-epg.org/files/epg-us.xml.gz"),
+    ).resolves.toBe(xml)
+  })
+
+  it("decompresses gzipped bytes even without a .gz URL (magic sniff)", async () => {
+    const gzipped = gzipSync(xml)
+    const buffer = gzipped.buffer.slice(
+      gzipped.byteOffset,
+      gzipped.byteOffset + gzipped.byteLength,
+    ) as ArrayBuffer
+    await expect(
+      decodeGuidePayload(buffer, "https://iptv-epg.org/files/epg-us.xml"),
+    ).resolves.toBe(xml)
   })
 })

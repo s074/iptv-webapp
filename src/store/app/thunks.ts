@@ -21,6 +21,7 @@ import {
 import { loadWatchlistAsync } from "../watchlist/watchlistSlice"
 import { MediaSource } from "../types"
 import { Category, LiveStream } from "../../services/XtremeCodesAPI.types"
+import { hydrateEpgOffsets } from "../../services/epgTime"
 
 export const loadApp = createAsyncThunk<
   {
@@ -38,6 +39,9 @@ export const loadApp = createAsyncThunk<
     apiConfig: XtremeCodesConfig
     mediaSource: MediaSource
   }> => {
+    // EPG corrections apply to every session type — load before ready.
+    await hydrateEpgOffsets()
+
     const mediaSourceStr = await localStorageGet(STORAGE_KEY.MEDIA_SOURCE)
 
     if (mediaSourceStr) {

@@ -28,7 +28,7 @@ import { setMediaSource } from "../store/app/appSlice"
 import { fetchSeriesCategoriesAsync, fetchSeriesStreamsAsync, selectSeriesStreams } from "../store/series/seriesSlice"
 import { selectWatchlist } from "../store/watchlist/watchlistSlice"
 import { fetchVodCategoriesAsync, fetchVodStreamsAsync, selectVodStreams } from "../store/vod/vodSlice"
-import { connectM3UPlaylist, fetchLiveCategoriesAsync, fetchLiveStreamsAsync, selectLiveStreams } from "../store/live/liveSlice"
+import { connectM3UPlaylist, fetchBulkEpgAsync, fetchLiveCategoriesAsync, fetchLiveStreamsAsync, selectLiveStreams } from "../store/live/liveSlice"
 import { MediaSource } from "../store/types"
 import { thinScrollbarSx } from "../components/scrollbar"
 
@@ -123,6 +123,7 @@ export const Dashboard: FC = () => {
         dispatch(fetchLiveStreamsAsync()).unwrap(),
         dispatch(fetchVodStreamsAsync()).unwrap(),
         dispatch(fetchSeriesStreamsAsync()).unwrap(),
+        dispatch(fetchBulkEpgAsync()).unwrap(),
       ])
     } catch (e) {
       console.log(e)

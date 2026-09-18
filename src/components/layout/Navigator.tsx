@@ -16,6 +16,7 @@ import LiveTvIcon from "@mui/icons-material/LiveTv"
 import TheatersIcon from "@mui/icons-material/Theaters"
 import TvIcon from "@mui/icons-material/Tv"
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder"
+import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded"
 
 export const navigationItems = [
   {
@@ -42,6 +43,11 @@ export const navigationItems = [
     url: urls.watchlist,
     icon: <BookmarkBorderIcon fontSize="small" />,
     text: "Watchlist",
+  },
+  {
+    url: urls.settings,
+    icon: <SettingsRoundedIcon fontSize="small" />,
+    text: "Settings",
   },
 ]
 
