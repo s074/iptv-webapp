@@ -9,6 +9,7 @@ import { useAppDispatch, useAppSelector } from "../store/hooks"
 import { fetchVodInfoAsync } from "../store/vod/vodSlice"
 import { YoutubeVideo } from "./YoutubeVideo"
 import { Loading } from "./layout/Loading"
+import { MediaSpecs } from "./MediaSpecs"
 import { selectWatchlist, addToWatchlist, removeFromWatchlist } from "../store/watchlist/watchlistSlice"
 import { useVodUrl } from "./useMediaUrl"
 import { copyTextToClibpboard, isVlcPlatform, openInVlc } from "../services/utils"
@@ -97,6 +98,11 @@ export const VodInfoComponent: FC<VodInfoProps> = (props) => {
               <Typography variant="body1" sx={{ mb: 1 }}>
                 {info?.info?.plot}
               </Typography>
+              {info?.info?.o_name && info.info.o_name !== info.info.name && (
+                <Typography>
+                  <b>Original title:</b> {info?.info?.o_name}
+                </Typography>
+              )}
               <Typography>
                 <b>Release Date:</b> {info?.info?.releasedate}
               </Typography>
@@ -112,6 +118,24 @@ export const VodInfoComponent: FC<VodInfoProps> = (props) => {
               <Typography>
                 <b>Cast:</b> {info?.info?.cast}
               </Typography>
+              {info?.info?.country && (
+                <Typography>
+                  <b>Country:</b> {info?.info?.country}
+                </Typography>
+              )}
+              {info?.info?.age && (
+                <Typography>
+                  <b>Age rating:</b> {info?.info?.age}
+                </Typography>
+              )}
+              <MediaSpecs
+                container={vod.container_extension}
+                video={info?.info?.video}
+                audio={info?.info?.audio}
+                durationSecs={info?.info?.duration_secs}
+                duration={info?.info?.duration}
+                showDuration={!info?.info?.duration}
+              />
             </>
           )}
           {state === "error" && (

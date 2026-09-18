@@ -16,6 +16,8 @@ import Typography from "@mui/material/Typography"
 import { ArrowDropDown } from "@mui/icons-material"
 import OpenInNewRoundedIcon from "@mui/icons-material/OpenInNewRounded"
 import { EpisodesCarousel } from "./EpisodesCarousel"
+import { YoutubeVideo } from "./YoutubeVideo"
+import { MediaSpecs } from "./MediaSpecs"
 import { selectWatchlist, addToWatchlist, removeFromWatchlist } from "../store/watchlist/watchlistSlice"
 import { useEpisodeUrl } from "./useMediaUrl"
 import { copyTextToClibpboard, isVlcPlatform, openInVlc } from "../services/utils"
@@ -36,6 +38,7 @@ export const SeriesInfoComponent: FC<SeriesInfoProps> = (props) => {
     SeriesSeason | undefined
   >(undefined)
   const [seasonAnchor, setSeasonAnchor] = useState<HTMLElement | null>(null)
+  const [trailerVisible, setTrailerVisible] = useState(false)
   const dispatch = useAppDispatch()
   const watchlist = useAppSelector(selectWatchlist)
   const url = useEpisodeUrl(
@@ -113,6 +116,8 @@ export const SeriesInfoComponent: FC<SeriesInfoProps> = (props) => {
     await copyTextToClibpboard(url)
   }
 
+  const showTrailer = trailerVisible && info?.info?.youtube_trailer
+
   if (state === "loading") return <Loading />
 
   return (
@@ -126,6 +131,8 @@ export const SeriesInfoComponent: FC<SeriesInfoProps> = (props) => {
       }}
     >
       <Grid size={{ xs: 12, md: 4 }} sx={{ display: "flex", justifyContent: "center", alignItems: "flex-start" }}>
+        {showTrailer && <YoutubeVideo id={info?.info?.youtube_trailer ?? ""} />}
+        {!showTrailer && (
         <Box
           component="img"
           src={series.cover}
@@ -137,6 +144,7 @@ export const SeriesInfoComponent: FC<SeriesInfoProps> = (props) => {
             borderRadius: 2,
           }}
         />
+        )}
       </Grid>
       <Grid size={{ xs: 12, md: 8 }} sx={{ minWidth: 0 }}>
         {state === "ready" && (
@@ -159,7 +167,25 @@ export const SeriesInfoComponent: FC<SeriesInfoProps> = (props) => {
             <Typography>
               <b>Cast:</b> {info?.info?.cast}
             </Typography>
+            {selectedEpisode && (
+              <MediaSpecs
+                container={selectedEpisode.container_extension}
+                video={selectedEpisode.info?.video}
+                audio={selectedEpisode.info?.audio}
+                durationSecs={selectedEpisode.info?.duration_secs}
+                duration={selectedEpisode.info?.duration}
+                heading={`Episode quality (S${selectedEpisode.season} E${selectedEpisode.episode_num})`}
+              />
+            )}
             <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 2 }}>
+              <Button
+                variant="contained"
+                color="inherit"
+                onClick={() => setTrailerVisible((prev) => !prev)}
+                disabled={!info || !info.info?.youtube_trailer}
+              >
+                Watch Trailer
+              </Button>
               <Button
                 variant="contained"
                 color="inherit"
